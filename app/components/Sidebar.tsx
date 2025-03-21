@@ -27,7 +27,7 @@ const Sidebar = () => {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute -right-4 top-6 bg-gray-900 text-white rounded-full hover:bg-gray-800 z-50"
+        className="absolute -right-4 top-16 bg-gray-900 text-white rounded-full hover:bg-gray-800 z-50"
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
         {isCollapsed ? (
