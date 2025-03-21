@@ -1,20 +1,28 @@
 import { Task } from "@/app/types/kanban";
 import { cn } from "@/lib/utils";
 import { Draggable } from "@hello-pangea/dnd";
-import { Check, Square } from "lucide-react";
+import { Check, Square, Trash2 } from "lucide-react";
 
 interface TaskCardProps {
   task: Task;
   index: number;
   onTaskClick: (task: Task) => void;
   onToggleComplete?: (taskId: string) => void;
+  onDeleteTask?: (taskId: string) => void;
 }
 
-export function TaskCard({ task, index, onTaskClick, onToggleComplete }: TaskCardProps) {
+export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteTask }: TaskCardProps) {
   const handleToggleComplete = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the card click
     if (onToggleComplete) {
       onToggleComplete(task.id);
+    }
+  };
+
+  const handleDeleteTask = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the card click
+    if (onDeleteTask) {
+      onDeleteTask(task.id);
     }
   };
 
@@ -27,7 +35,7 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete }: TaskCar
           {...provided.dragHandleProps}
           onClick={() => onTaskClick(task)}
           className={cn(
-            "bg-white dark:bg-gray-700 p-3 rounded-lg shadow mb-2 text-sm select-none cursor-pointer hover:shadow-md transition-shadow dark:text-gray-200",
+            "bg-white dark:bg-gray-700 p-3 rounded-lg shadow mb-2 text-sm select-none cursor-pointer hover:shadow-md transition-shadow dark:text-gray-200 group",
             snapshot.isDragging ? "opacity-75 shadow-lg ring-2 ring-gray-200 dark:ring-gray-600" : ""
           )}
           style={provided.draggableProps.style}
@@ -71,6 +79,13 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete }: TaskCar
                   {task.description}
                 </p>
               )}
+            </div>
+
+            <div 
+              className="flex-shrink-0 mt-0.5 cursor-pointer text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity" 
+              onClick={handleDeleteTask}
+            >
+              <Trash2 className="w-4 h-4" />
             </div>
           </div>
         </div>

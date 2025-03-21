@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Column as ColumnComponent } from "./kanban/Column";
 import { TaskModal } from "./kanban/TaskModal";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const initialData: Board = {
   columns: [
@@ -82,6 +83,8 @@ const KanbanBoard = () => {
     completed?: boolean;
   }>({ title: "", description: "" });
   const [isEditingTask, setIsEditingTask] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
   const onDragEnd = (result: any) => {
     const { destination, source, type, draggableId } = result;
@@ -234,6 +237,37 @@ const KanbanBoard = () => {
     }
   };
 
+  const deleteTask = (taskId: string) => {
+    const newBoardData = JSON.parse(JSON.stringify(board));
+    for (const column of newBoardData.columns) {
+      const taskIndex = column.tasks.findIndex((t: Task) => t.id === taskId);
+      if (taskIndex !== -1) {
+        column.tasks.splice(taskIndex, 1);
+        setBoard(newBoardData);
+        
+        // If this is the currently selected task, close the modal
+        if (selectedTask && selectedTask.id === taskId) {
+          setSelectedTask(null);
+          setEditingTask({ title: "", description: "", labels: [], completed: false });
+          setIsEditingTask(false);
+        }
+        break;
+      }
+    }
+    setTaskToDelete(null);
+    setShowDeleteConfirmation(false);
+  };
+
+  const confirmDeleteTask = (taskId: string) => {
+    setTaskToDelete(taskId);
+    setShowDeleteConfirmation(true);
+  };
+
+  const cancelDeleteTask = () => {
+    setTaskToDelete(null);
+    setShowDeleteConfirmation(false);
+  };
+
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <Droppable droppableId="all-columns" direction="horizontal" type="column">
@@ -284,6 +318,7 @@ const KanbanBoard = () => {
                       }}
                       onTaskClick={handleTaskClick}
                       onToggleTaskCompletion={toggleTaskCompletion}
+                      onDeleteTask={confirmDeleteTask}
                       onAddTask={addNewTask}
                       newTaskTitle={newTaskTitle}
                       newTaskDescription={newTaskDescription}
@@ -326,7 +361,41 @@ const KanbanBoard = () => {
         onSave={updateTask}
         onCancel={() => setIsEditingTask(false)}
         onTaskChange={handleTaskChange}
+        onDeleteTask={confirmDeleteTask}
       />
+
+      {showDeleteConfirmation && (
+        <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
+          <DialogContent className="sm:max-w-[400px] dark:bg-gray-800 dark:border-gray-700">
+            <DialogHeader>
+              <DialogTitle className="dark:text-gray-200">Confirm Deletion</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Are you sure you want to delete this task? This action cannot be undone.
+              </p>
+            </div>
+            <DialogFooter className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={cancelDeleteTask}
+                className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="button" 
+                onClick={() => taskToDelete && deleteTask(taskToDelete)}
+                variant="destructive"
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </DragDropContext>
   );
 };

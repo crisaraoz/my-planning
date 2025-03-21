@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { X, Plus, Check, Square } from "lucide-react";
+import { X, Plus, Check, Square, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -27,6 +27,7 @@ interface TaskModalProps {
   onSave: () => void;
   onCancel: () => void;
   onTaskChange: (field: "title" | "description" | "labels" | "completed", value: any) => void;
+  onDeleteTask?: (taskId: string) => void;
 }
 
 // Opciones predefinidas de etiquetas
@@ -48,6 +49,7 @@ export function TaskModal({
   onSave,
   onCancel,
   onTaskChange,
+  onDeleteTask,
 }: TaskModalProps) {
   const [showLabelSelector, setShowLabelSelector] = useState(false);
 
@@ -218,42 +220,64 @@ export function TaskModal({
           </div>
         )}
 
-        <DialogFooter className="flex gap-2">
+        <DialogFooter className="flex gap-2 justify-between">
           {isEditingTask ? (
             <>
               <Button
                 type="button"
-                variant="outline"
-                onClick={onCancel}
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+                variant="destructive"
+                onClick={() => selectedTask && onDeleteTask && onDeleteTask(selectedTask.id)}
+                className="bg-red-600 hover:bg-red-700 text-white"
               >
-                Cancel
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete
               </Button>
-              <Button 
-                type="button" 
-                onClick={onSave}
-                className="dark:bg-gray-700 dark:hover:bg-gray-600"
-              >
-                Save Changes
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={onSave}
+                  className="dark:bg-gray-700 dark:hover:bg-gray-600"
+                >
+                  Save Changes
+                </Button>
+              </div>
             </>
           ) : (
             <>
               <Button
                 type="button"
-                variant="outline"
-                onClick={onClose}
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+                variant="destructive"
+                onClick={() => selectedTask && onDeleteTask && onDeleteTask(selectedTask.id)}
+                className="bg-red-600 hover:bg-red-700 text-white"
               >
-                Close
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete
               </Button>
-              <Button 
-                type="button" 
-                onClick={onEdit}
-                className="dark:bg-gray-700 dark:hover:bg-gray-600"
-              >
-                Edit Task
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+                >
+                  Close
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={onEdit}
+                  className="dark:bg-gray-700 dark:hover:bg-gray-600"
+                >
+                  Edit Task
+                </Button>
+              </div>
             </>
           )}
         </DialogFooter>
