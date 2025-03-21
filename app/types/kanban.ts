@@ -1,7 +1,15 @@
+export interface Label {
+  id: string;
+  text: string;
+  color: string;
+}
+
 export interface Task {
   id: string;
   title: string;
   description?: string;
+  labels?: Label[];
+  completed?: boolean;
   assignee?: {
     name: string;
     avatar: string;
