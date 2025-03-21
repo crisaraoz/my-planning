@@ -201,6 +201,7 @@ const KanbanBoard = () => {
 
     setBoard(newBoardData);
     setIsEditingTask(false);
+    setSelectedTask(null);
   };
 
   const handleTaskClose = () => {
@@ -359,7 +360,10 @@ const KanbanBoard = () => {
         onClose={handleTaskClose}
         onEdit={() => setIsEditingTask(true)}
         onSave={updateTask}
-        onCancel={() => setIsEditingTask(false)}
+        onCancel={() => {
+          setIsEditingTask(false);
+          setSelectedTask(null);
+        }}
         onTaskChange={handleTaskChange}
         onDeleteTask={confirmDeleteTask}
       />
