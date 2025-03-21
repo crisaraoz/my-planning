@@ -23,6 +23,19 @@ export function TaskCard({ task, index, onTaskClick }: TaskCardProps) {
           )}
           style={provided.draggableProps.style}
         >
+          {task.labels && task.labels.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {task.labels.map((label) => (
+                <span
+                  key={label.id}
+                  className="px-2 py-0.5 text-xs font-medium rounded-full"
+                  style={{ backgroundColor: label.color, color: getContrastColor(label.color) }}
+                >
+                  {label.text}
+                </span>
+              ))}
+            </div>
+          )}
           <h4 className="font-medium mb-1">{task.title}</h4>
           {task.description && (
             <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
@@ -33,4 +46,21 @@ export function TaskCard({ task, index, onTaskClick }: TaskCardProps) {
       )}
     </Draggable>
   );
+}
+
+// Función para determinar si se debe usar texto blanco o negro según el color de fondo
+function getContrastColor(hexColor: string): string {
+  // Eliminar el # si existe
+  hexColor = hexColor.replace("#", "");
+  
+  // Convertir a RGB
+  const r = parseInt(hexColor.substr(0, 2), 16);
+  const g = parseInt(hexColor.substr(2, 2), 16);
+  const b = parseInt(hexColor.substr(4, 2), 16);
+  
+  // Calcular el brillo (W3C)
+  const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+  
+  // Si el brillo es mayor que 150, usar texto negro, sino usar texto blanco
+  return brightness > 150 ? '#000000' : '#ffffff';
 } 
