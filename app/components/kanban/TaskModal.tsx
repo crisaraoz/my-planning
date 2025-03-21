@@ -35,9 +35,9 @@ export function TaskModal({
 }: TaskModalProps) {
   return (
     <Dialog open={selectedTask !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] dark:bg-gray-800 dark:border-gray-700">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="dark:text-gray-200">
             {isEditingTask ? "Edit Task" : "Task Details"}
           </DialogTitle>
         </DialogHeader>
@@ -45,33 +45,33 @@ export function TaskModal({
         {isEditingTask ? (
           <div className="space-y-3 py-4">
             <div className="space-y-2">
-              <label htmlFor="title" className="text-sm font-medium">
+              <label htmlFor="title" className="text-sm font-medium dark:text-gray-300">
                 Title
               </label>
               <Input
                 id="title"
                 value={editingTask.title}
                 onChange={(e) => onTaskChange("title", e.target.value)}
-                className="text-sm"
+                className="text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="description" className="text-sm font-medium">
+              <label htmlFor="description" className="text-sm font-medium dark:text-gray-300">
                 Description
               </label>
               <Input
                 id="description"
                 value={editingTask.description}
                 onChange={(e) => onTaskChange("description", e.target.value)}
-                className="text-sm"
+                className="text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               />
             </div>
           </div>
         ) : (
           <div className="py-4">
-            <h4 className="font-medium mb-2">{selectedTask?.title}</h4>
+            <h4 className="font-medium mb-2 dark:text-gray-200">{selectedTask?.title}</h4>
             {selectedTask?.description && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {selectedTask.description}
               </p>
             )}
@@ -85,10 +85,15 @@ export function TaskModal({
                 type="button"
                 variant="outline"
                 onClick={onCancel}
+                className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
               >
                 Cancel
               </Button>
-              <Button type="button" onClick={onSave}>
+              <Button 
+                type="button" 
+                onClick={onSave}
+                className="dark:bg-gray-700 dark:hover:bg-gray-600"
+              >
                 Save Changes
               </Button>
             </>
@@ -98,10 +103,15 @@ export function TaskModal({
                 type="button"
                 variant="outline"
                 onClick={onClose}
+                className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
               >
                 Close
               </Button>
-              <Button type="button" onClick={onEdit}>
+              <Button 
+                type="button" 
+                onClick={onEdit}
+                className="dark:bg-gray-700 dark:hover:bg-gray-600"
+              >
                 Edit Task
               </Button>
             </>

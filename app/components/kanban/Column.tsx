@@ -53,20 +53,20 @@ export function Column({
   onNewTaskDescriptionChange,
 }: ColumnProps) {
   return (
-    <div className="bg-gray-100 p-3 rounded-lg w-72 flex-shrink-0">
+    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg w-72 flex-shrink-0">
       <div className="flex justify-between items-center mb-3">
         {editingSectionId === column.id ? (
           <div className="flex gap-1 flex-1">
             <Input
               value={editingSectionTitle}
               onChange={(e) => onSectionTitleChange(e.target.value)}
-              className="h-7 text-sm"
+              className="h-7 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
             <Button
               size="sm"
               variant="ghost"
               onClick={onSaveSectionTitle}
-              className="h-7 px-2"
+              className="h-7 px-2 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               Save
             </Button>
@@ -74,33 +74,33 @@ export function Column({
               size="sm"
               variant="ghost"
               onClick={onCancelEditSection}
-              className="h-7 px-2"
+              className="h-7 px-2 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <X className="h-3 w-3" />
             </Button>
           </div>
         ) : (
           <>
-            <h3 className="font-semibold text-gray-700 text-sm">{column.title}</h3>
+            <h3 className="font-semibold text-gray-700 dark:text-gray-300 text-sm">{column.title}</h3>
             <div className="flex items-center gap-2">
-              <span className="bg-gray-200 px-2 py-0.5 rounded text-xs">
+              <span className="bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded text-xs dark:text-gray-300">
                 {column.tasks.length}
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 dark:text-gray-300 dark:hover:bg-gray-700">
                     <MoreVertical className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="dark:bg-gray-800 dark:border-gray-700">
                   <DropdownMenuItem
                     onClick={() => onStartEditSection(column.id, column.title)}
-                    className="text-sm"
+                    className="text-sm dark:text-gray-300 dark:hover:bg-gray-700"
                   >
                     Edit Section
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="text-red-600 text-sm"
+                    className="text-red-600 dark:text-red-400 text-sm dark:hover:bg-gray-700"
                     onClick={() => onDeleteSection(column.id)}
                   >
                     Delete Section
@@ -119,7 +119,7 @@ export function Column({
             {...provided.droppableProps}
             className={cn(
               "min-h-[150px] transition-colors rounded-md",
-              snapshot.isDraggingOver ? "bg-gray-200/50" : ""
+              snapshot.isDraggingOver ? "bg-gray-200/50 dark:bg-gray-700/50" : ""
             )}
           >
             {column.tasks.map((task, index) => (
@@ -139,31 +139,31 @@ export function Column({
         <DialogTrigger asChild>
           <Button
             variant="outline"
-            className="w-full mt-2 text-gray-600 hover:text-gray-700 h-7 text-xs"
+            className="w-full mt-2 text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 h-7 text-xs dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600"
           >
             <Plus className="w-3 h-3 mr-1" />
             Add Task
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>Add New Task</DialogTitle>
+            <DialogTitle className="dark:text-gray-200">Add New Task</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 pt-3">
             <Input
               placeholder="Task title"
               value={newTaskTitle}
               onChange={(e) => onNewTaskTitleChange(e.target.value)}
-              className="text-sm"
+              className="text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
             <Input
               placeholder="Task description (optional)"
               value={newTaskDescription}
               onChange={(e) => onNewTaskDescriptionChange(e.target.value)}
-              className="text-sm"
+              className="text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
             <Button
-              className="w-full"
+              className="w-full dark:bg-gray-700 dark:hover:bg-gray-600"
               onClick={() => onAddTask(column.id)}
             >
               Add Task
