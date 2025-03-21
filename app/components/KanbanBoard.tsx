@@ -79,6 +79,7 @@ const KanbanBoard = () => {
     title: string;
     description: string;
     labels?: Label[];
+    completed?: boolean;
   }>({ title: "", description: "" });
   const [isEditingTask, setIsEditingTask] = useState(false);
 
@@ -167,6 +168,7 @@ const KanbanBoard = () => {
       title: task.title,
       description: task.description || "",
       labels: task.labels || [],
+      completed: task.completed || false,
     });
   };
 
@@ -191,6 +193,7 @@ const KanbanBoard = () => {
       title: editingTask.title,
       description: editingTask.description,
       labels: editingTask.labels,
+      completed: editingTask.completed,
     };
 
     setBoard(newBoardData);
@@ -199,12 +202,36 @@ const KanbanBoard = () => {
 
   const handleTaskClose = () => {
     setSelectedTask(null);
-    setEditingTask({ title: "", description: "", labels: [] });
+    setEditingTask({ title: "", description: "", labels: [], completed: false });
     setIsEditingTask(false);
   };
 
-  const handleTaskChange = (field: "title" | "description" | "labels", value: any) => {
+  const handleTaskChange = (field: "title" | "description" | "labels" | "completed", value: any) => {
     setEditingTask(prev => ({ ...prev, [field]: value }));
+  };
+
+  const toggleTaskCompletion = (taskId: string) => {
+    const newBoardData = JSON.parse(JSON.stringify(board));
+    for (const column of newBoardData.columns) {
+      const taskIndex = column.tasks.findIndex((t: Task) => t.id === taskId);
+      if (taskIndex !== -1) {
+        column.tasks[taskIndex].completed = !column.tasks[taskIndex].completed;
+        setBoard(newBoardData);
+        
+        // If this is the currently selected task, update the editing state too
+        if (selectedTask && selectedTask.id === taskId) {
+          setSelectedTask({
+            ...selectedTask,
+            completed: column.tasks[taskIndex].completed
+          });
+          setEditingTask(prev => ({
+            ...prev,
+            completed: column.tasks[taskIndex].completed
+          }));
+        }
+        break;
+      }
+    }
   };
 
   return (
@@ -256,6 +283,7 @@ const KanbanBoard = () => {
                         });
                       }}
                       onTaskClick={handleTaskClick}
+                      onToggleTaskCompletion={toggleTaskCompletion}
                       onAddTask={addNewTask}
                       newTaskTitle={newTaskTitle}
                       newTaskDescription={newTaskDescription}

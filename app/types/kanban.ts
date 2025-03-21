@@ -9,6 +9,7 @@ export interface Task {
   title: string;
   description?: string;
   labels?: Label[];
+  completed?: boolean;
   assignee?: {
     name: string;
     avatar: string;

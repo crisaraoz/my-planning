@@ -9,8 +9,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Check, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TaskModalProps {
   selectedTask: Task | null;
@@ -19,12 +20,13 @@ interface TaskModalProps {
     title: string;
     description: string;
     labels?: Label[];
+    completed?: boolean;
   };
   onClose: () => void;
   onEdit: () => void;
   onSave: () => void;
   onCancel: () => void;
-  onTaskChange: (field: "title" | "description" | "labels", value: any) => void;
+  onTaskChange: (field: "title" | "description" | "labels" | "completed", value: any) => void;
 }
 
 // Opciones predefinidas de etiquetas
@@ -78,6 +80,22 @@ export function TaskModal({
         
         {isEditingTask ? (
           <div className="space-y-3 py-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div 
+                className="flex items-center cursor-pointer" 
+                onClick={() => onTaskChange("completed", !editingTask.completed)}
+              >
+                {editingTask.completed ? (
+                  <div className="w-4 h-4 rounded-sm bg-blue-500 flex items-center justify-center">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                ) : (
+                  <Square className="w-4 h-4 text-gray-400" />
+                )}
+                <span className="ml-2 text-sm dark:text-gray-300">Mark as completed</span>
+              </div>
+            </div>
+            
             <div className="space-y-2">
               <label htmlFor="title" className="text-sm font-medium dark:text-gray-300">
                 Title
@@ -86,7 +104,10 @@ export function TaskModal({
                 id="title"
                 value={editingTask.title}
                 onChange={(e) => onTaskChange("title", e.target.value)}
-                className="text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                className={cn(
+                  "text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200",
+                  editingTask.completed && "line-through text-gray-500 dark:text-gray-400"
+                )}
               />
             </div>
             
@@ -157,6 +178,19 @@ export function TaskModal({
           </div>
         ) : (
           <div className="py-4">
+            <div className="flex items-center gap-3 mb-3">
+              {selectedTask?.completed ? (
+                <div className="w-4 h-4 rounded-sm bg-blue-500 flex items-center justify-center">
+                  <Check className="w-3 h-3 text-white" />
+                </div>
+              ) : (
+                <Square className="w-4 h-4 text-gray-400" />
+              )}
+              <span className="text-sm dark:text-gray-300">
+                {selectedTask?.completed ? "Completed" : "Not completed"}
+              </span>
+            </div>
+            
             {selectedTask?.labels && selectedTask.labels.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-3">
                 {selectedTask.labels.map((label) => (
@@ -170,7 +204,12 @@ export function TaskModal({
                 ))}
               </div>
             )}
-            <h4 className="font-medium mb-2 dark:text-gray-200">{selectedTask?.title}</h4>
+            <h4 className={cn(
+              "font-medium mb-2 dark:text-gray-200",
+              selectedTask?.completed && "line-through text-gray-500 dark:text-gray-400"
+            )}>
+              {selectedTask?.title}
+            </h4>
             {selectedTask?.description && (
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {selectedTask.description}

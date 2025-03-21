@@ -1,14 +1,23 @@
 import { Task } from "@/app/types/kanban";
 import { cn } from "@/lib/utils";
 import { Draggable } from "@hello-pangea/dnd";
+import { Check, Square } from "lucide-react";
 
 interface TaskCardProps {
   task: Task;
   index: number;
   onTaskClick: (task: Task) => void;
+  onToggleComplete?: (taskId: string) => void;
 }
 
-export function TaskCard({ task, index, onTaskClick }: TaskCardProps) {
+export function TaskCard({ task, index, onTaskClick, onToggleComplete }: TaskCardProps) {
+  const handleToggleComplete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the card click
+    if (onToggleComplete) {
+      onToggleComplete(task.id);
+    }
+  };
+
   return (
     <Draggable key={task.id} draggableId={task.id} index={index}>
       {(provided, snapshot) => (
@@ -23,25 +32,47 @@ export function TaskCard({ task, index, onTaskClick }: TaskCardProps) {
           )}
           style={provided.draggableProps.style}
         >
-          {task.labels && task.labels.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {task.labels.map((label) => (
-                <span
-                  key={label.id}
-                  className="px-2 py-0.5 text-xs font-medium rounded-full"
-                  style={{ backgroundColor: label.color, color: getContrastColor(label.color) }}
-                >
-                  {label.text}
-                </span>
-              ))}
+          <div className="flex items-start gap-2">
+            <div 
+              className="flex-shrink-0 mt-0.5 cursor-pointer" 
+              onClick={handleToggleComplete}
+            >
+              {task.completed ? (
+                <div className="w-4 h-4 rounded-sm bg-blue-500 flex items-center justify-center">
+                  <Check className="w-3 h-3 text-white" />
+                </div>
+              ) : (
+                <Square className="w-4 h-4 text-gray-400" />
+              )}
             </div>
-          )}
-          <h4 className="font-medium mb-1">{task.title}</h4>
-          {task.description && (
-            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-              {task.description}
-            </p>
-          )}
+            
+            <div className="flex-grow">
+              {task.labels && task.labels.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {task.labels.map((label) => (
+                    <span
+                      key={label.id}
+                      className="px-2 py-0.5 text-xs font-medium rounded-full"
+                      style={{ backgroundColor: label.color, color: getContrastColor(label.color) }}
+                    >
+                      {label.text}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <h4 className={cn(
+                "font-medium mb-1",
+                task.completed && "line-through text-gray-500 dark:text-gray-400"
+              )}>
+                {task.title}
+              </h4>
+              {task.description && (
+                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                  {task.description}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </Draggable>

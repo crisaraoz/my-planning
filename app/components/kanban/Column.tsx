@@ -41,6 +41,7 @@ interface ColumnProps {
   onDeleteSection: (id: string) => void;
   onTaskClick: (task: Task) => void;
   onAddTask: (columnId: string, labels?: Label[]) => void;
+  onToggleTaskCompletion?: (taskId: string) => void;
   newTaskTitle: string;
   newTaskDescription: string;
   onNewTaskTitleChange: (value: string) => void;
@@ -59,6 +60,7 @@ export function Column({
   onDeleteSection,
   onTaskClick,
   onAddTask,
+  onToggleTaskCompletion,
   newTaskTitle,
   newTaskDescription,
   onNewTaskTitleChange,
@@ -166,6 +168,7 @@ export function Column({
                 task={task}
                 index={index}
                 onTaskClick={onTaskClick}
+                onToggleComplete={onToggleTaskCompletion}
               />
             ))}
             {provided.placeholder}
