@@ -172,7 +172,7 @@ const KanbanBoard = () => {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-4 h-full px-4 pb-4 bg-gray-50">
+      <div className="flex gap-4 h-full px-4 pb-4 bg-gray-50 dark:bg-gray-900">
         {board.columns.map((column) => (
           <ColumnComponent
             key={column.id}
@@ -213,16 +213,16 @@ const KanbanBoard = () => {
         ))}
 
         <div className="w-72 flex-shrink-0">
-          <div className="bg-gray-100 p-3 rounded-lg">
-            <h3 className="font-semibold text-gray-700 mb-3 text-sm">Add New Section</h3>
+          <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+            <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">Add New Section</h3>
             <div className="flex gap-2">
               <Input
                 placeholder="Section title"
                 value={newSectionTitle}
                 onChange={(e) => setNewSectionTitle(e.target.value)}
-                className="text-sm h-7"
+                className="text-sm h-7 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               />
-              <Button onClick={addNewSection} className="h-7 w-7 p-0">
+              <Button onClick={addNewSection} className="h-7 w-7 p-0 dark:bg-gray-700">
                 <Plus className="w-3 h-3" />
               </Button>
             </div>

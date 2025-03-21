@@ -18,14 +18,14 @@ export function TaskCard({ task, index, onTaskClick }: TaskCardProps) {
           {...provided.dragHandleProps}
           onClick={() => onTaskClick(task)}
           className={cn(
-            "bg-white p-3 rounded-lg shadow mb-2 text-sm select-none cursor-pointer hover:shadow-md transition-shadow",
-            snapshot.isDragging ? "opacity-75 shadow-lg ring-2 ring-gray-200" : ""
+            "bg-white dark:bg-gray-700 p-3 rounded-lg shadow mb-2 text-sm select-none cursor-pointer hover:shadow-md transition-shadow dark:text-gray-200",
+            snapshot.isDragging ? "opacity-75 shadow-lg ring-2 ring-gray-200 dark:ring-gray-600" : ""
           )}
           style={provided.draggableProps.style}
         >
           <h4 className="font-medium mb-1">{task.title}</h4>
           {task.description && (
-            <p className="text-xs text-gray-600 line-clamp-2">
+            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
               {task.description}
             </p>
           )}

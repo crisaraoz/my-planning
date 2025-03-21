@@ -1,11 +1,12 @@
 "use client";
 
-import { Home, Inbox, BarChart2, Users, Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Inbox, BarChart2, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ThemeToggle } from "./ThemeToggle";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -20,14 +21,14 @@ const Sidebar = () => {
   return (
     <div
       className={cn(
-        "bg-gray-900 text-white h-screen relative transition-all duration-300",
+        "bg-gray-900 text-white h-screen relative transition-all duration-300 dark:bg-gray-950",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
       <Button
         variant="ghost"
         size="icon"
-        className="absolute -right-4 top-16 bg-gray-900 text-white rounded-full hover:bg-gray-800 z-50"
+        className="absolute -right-4 top-16 bg-gray-900 text-white rounded-full hover:bg-gray-800 z-50 dark:bg-gray-950 dark:hover:bg-gray-800"
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
         {isCollapsed ? (
@@ -45,7 +46,9 @@ const Sidebar = () => {
           "flex items-center gap-2 mb-8",
           isCollapsed && "justify-center"
         )}>
-          <Settings className="w-8 h-8 flex-shrink-0" />
+          <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
+            <ThemeToggle />
+          </div>
           {!isCollapsed && <span className="text-xl font-bold">Planning</span>}
         </div>
         
