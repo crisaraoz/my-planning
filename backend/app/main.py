@@ -22,6 +22,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://my-planning-crisaraozs-projects.vercel.app",
+        "https://my-planning-tawny.vercel.app",
         "http://localhost:3000",
     ],  # Dominios específicos permitidos
     allow_credentials=True,
