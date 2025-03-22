@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from ...database import SessionLocal
@@ -62,6 +62,15 @@ class LabelResponse(LabelBase):
     class Config:
         from_attributes = True
 
+# Pydantic model para crear etiquetas
+class LabelCreate(BaseModel):
+    text: str
+    color: str
+
+# Pydantic model para enviar múltiples etiquetas
+class LabelsRequest(BaseModel):
+    labels: List[LabelCreate]
+
 # Endpoints para Columnas
 @router.get("/columns", response_model=List[ColumnResponse], tags=["columns"])
 def get_columns(db: Session = Depends(get_db)):
@@ -80,6 +89,35 @@ def create_column(column: ColumnCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_column)
     return db_column
+
+@router.put("/columns/{column_id}", response_model=ColumnResponse, tags=["columns"])
+def update_column(column_id: int, column: ColumnCreate, db: Session = Depends(get_db)):
+    """
+    Actualizar una columna existente
+    """
+    db_column = db.query(Column).filter(Column.id == column_id).first()
+    if not db_column:
+        raise HTTPException(status_code=404, detail="Column not found")
+    
+    for key, value in column.model_dump().items():
+        setattr(db_column, key, value)
+    
+    db.commit()
+    db.refresh(db_column)
+    return db_column
+
+@router.delete("/columns/{column_id}", tags=["columns"])
+def delete_column(column_id: int, db: Session = Depends(get_db)):
+    """
+    Eliminar una columna
+    """
+    db_column = db.query(Column).filter(Column.id == column_id).first()
+    if not db_column:
+        raise HTTPException(status_code=404, detail="Column not found")
+    
+    db.delete(db_column)
+    db.commit()
+    return {"message": "Column deleted successfully"}
 
 # Endpoints para Tareas
 @router.get("/tasks", response_model=List[TaskResponse], tags=["tasks"])
@@ -148,4 +186,38 @@ def get_task_labels(task_id: int, db: Session = Depends(get_db)):
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+    return task.labels
+
+@router.post("/tasks/{task_id}/labels", response_model=List[LabelResponse], tags=["tasks"])
+def add_labels_to_task(task_id: int, labels_request: LabelsRequest, db: Session = Depends(get_db)):
+    """
+    Actualizar etiquetas de una tarea (reemplaza todas las etiquetas existentes)
+    """
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    # Eliminar todas las etiquetas existentes
+    task.labels = []
+    
+    # Agregar las nuevas etiquetas
+    for label_data in labels_request.labels:
+        # Verificar si la etiqueta ya existe
+        label = db.query(Label).filter(
+            Label.text == label_data.text, 
+            Label.color == label_data.color
+        ).first()
+        
+        if not label:
+            # Crear nueva etiqueta si no existe
+            label = Label(text=label_data.text, color=label_data.color)
+            db.add(label)
+            db.commit()
+            db.refresh(label)
+        
+        # Agregar la etiqueta a la tarea
+        task.labels.append(label)
+    
+    db.commit()
+    
     return task.labels 

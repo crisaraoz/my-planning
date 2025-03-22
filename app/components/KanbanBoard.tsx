@@ -41,6 +41,7 @@ const KanbanBoard = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
   // Cargar datos iniciales desde el backend
@@ -145,6 +146,7 @@ const KanbanBoard = () => {
     if (!newTaskTitle.trim()) return;
 
     try {
+      setIsSaving(true);
       setActionInProgress('Añadiendo nueva tarea...');
       
       // Extraer el ID numérico de la sección
@@ -206,6 +208,7 @@ const KanbanBoard = () => {
       console.error('Error al crear nueva tarea:', error);
       toast.error('Error al crear la tarea');
     } finally {
+      setIsSaving(false);
       setActionInProgress(null);
     }
   };
@@ -240,6 +243,7 @@ const KanbanBoard = () => {
     if (!selectedTask || !editingTask.title.trim()) return;
 
     try {
+      setIsSaving(true);
       setActionInProgress('Actualizando tarea...');
       
       // Extraer el ID numérico de la tarea
@@ -317,6 +321,7 @@ const KanbanBoard = () => {
       console.error('Error al actualizar tarea:', error);
       toast.error('Error al actualizar la tarea');
     } finally {
+      setIsSaving(false);
       setIsEditingTask(false);
       setSelectedTask(null);
       setActionInProgress(null);
@@ -519,6 +524,7 @@ const KanbanBoard = () => {
                             onNewTaskTitleChange={(value) => setNewTaskTitle(value)}
                             onNewTaskDescriptionChange={(value) => setNewTaskDescription(value)}
                             dragHandleProps={provided.dragHandleProps}
+                            isSaving={isSaving}
                           />
                         </div>
                       )}
@@ -559,6 +565,7 @@ const KanbanBoard = () => {
               }}
               onTaskChange={handleTaskChange}
               onDeleteTask={confirmDeleteTask}
+              isSaving={isSaving}
             />
           </DragDropContext>
         </>

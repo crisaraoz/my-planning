@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Droppable, DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
-import { MoreVertical, Plus, X, GripVertical } from "lucide-react";
+import { MoreVertical, Plus, X, GripVertical, Loader2 } from "lucide-react";
 import { TaskCard } from "./TaskCard";
 import { useState } from "react";
 
@@ -48,6 +48,7 @@ interface ColumnProps {
   onNewTaskTitleChange: (value: string) => void;
   onNewTaskDescriptionChange: (value: string) => void;
   dragHandleProps: DraggableProvidedDragHandleProps | null;
+  isSaving?: boolean;
 }
 
 export function Column({
@@ -68,9 +69,11 @@ export function Column({
   onNewTaskTitleChange,
   onNewTaskDescriptionChange,
   dragHandleProps,
+  isSaving = false,
 }: ColumnProps) {
   const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
   const [showLabelSelector, setShowLabelSelector] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Función para añadir una etiqueta
   const addLabel = (label: Label) => {
@@ -87,8 +90,13 @@ export function Column({
   // Función para manejar la adición de una tarea con etiquetas
   const handleAddTask = () => {
     onAddTask(column.id, selectedLabels.length > 0 ? selectedLabels : undefined);
-    setSelectedLabels([]);
-    setShowLabelSelector(false);
+    
+    // No cerramos el diálogo aquí, lo dejamos para cuando la operación se complete
+    if (!isSaving) {
+      setSelectedLabels([]);
+      setShowLabelSelector(false);
+      setIsDialogOpen(false);
+    }
   };
 
   return (
@@ -179,11 +187,12 @@ export function Column({
         )}
       </Droppable>
 
-      <Dialog>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button
             variant="outline"
             className="w-full mt-2 text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 h-7 text-xs dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600"
+            onClick={() => setIsDialogOpen(true)}
           >
             <Plus className="w-3 h-3 mr-1" />
             Add Task
@@ -199,12 +208,14 @@ export function Column({
               value={newTaskTitle}
               onChange={(e) => onNewTaskTitleChange(e.target.value)}
               className="text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              disabled={isSaving}
             />
             <Input
               placeholder="Task description (optional)"
               value={newTaskDescription}
               onChange={(e) => onNewTaskDescriptionChange(e.target.value)}
               className="text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              disabled={isSaving}
             />
             
             <div className="space-y-2">
@@ -216,6 +227,7 @@ export function Column({
                   variant="ghost"
                   onClick={() => setShowLabelSelector(!showLabelSelector)}
                   className="h-6 px-2 text-xs dark:text-gray-300 dark:hover:bg-gray-700"
+                  disabled={isSaving}
                 >
                   <Plus className="w-3 h-3 mr-1" />
                   Add Label
@@ -263,8 +275,14 @@ export function Column({
             <Button
               className="w-full dark:bg-gray-700 dark:hover:bg-gray-600"
               onClick={handleAddTask}
+              disabled={isSaving}
             >
-              Add Task
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Añadiendo...
+                </>
+              ) : "Añadir Tarea"}
             </Button>
           </div>
         </DialogContent>
