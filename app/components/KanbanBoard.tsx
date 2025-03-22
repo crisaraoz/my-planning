@@ -105,7 +105,7 @@ const KanbanBoard = () => {
     fetchData();
   }, []);
 
-  const onDragEnd = (result: any) => {
+  const onDragEnd = async (result: any) => {
     const { destination, source, type, draggableId } = result;
 
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
@@ -139,7 +139,44 @@ const KanbanBoard = () => {
     const [movedTask] = newBoardData.columns[sourceColumnIndex].tasks.splice(source.index, 1);
     newBoardData.columns[destColumnIndex].tasks.splice(destination.index, 0, movedTask);
 
+    // Actualizar el estado local
     setBoard(newBoardData);
+    
+    // Guardar el cambio en el backend sin mostrar indicador de carga
+    try {
+      // Extraer el ID numérico de la tarea
+      const taskId = parseInt(draggableId.replace('task-', ''));
+      
+      if (isNaN(taskId)) {
+        console.error('ID de tarea inválido:', draggableId);
+        return;
+      }
+      
+      // Extraer el ID numérico de la columna destino
+      const destColumnId = parseInt(destination.droppableId.replace('section-', ''));
+      
+      if (isNaN(destColumnId)) {
+        console.error('ID de columna inválido:', destination.droppableId);
+        return;
+      }
+      
+      // Encontrar la tarea original completa
+      const originalTask = movedTask;
+      
+      // Llamar al servicio para actualizar la tarea en el backend con todos los campos requeridos
+      await updateTaskService(taskId, {
+        title: originalTask.title,
+        description: originalTask.description || '',
+        completed: originalTask.completed || false,
+        column_id: destColumnId,
+        order: destination.index
+      });
+      
+      console.log('Tarea actualizada exitosamente');
+    } catch (error) {
+      console.error('Error al actualizar posición de tarea:', error);
+      // No mostramos toast de error para no interrumpir la experiencia del usuario
+    }
   };
 
   const addNewTask = async (columnId: string, labels?: Label[]) => {
@@ -338,15 +375,28 @@ const KanbanBoard = () => {
     setEditingTask(prev => ({ ...prev, [field]: value }));
   };
 
-  const toggleTaskCompletion = (taskId: string) => {
+  const toggleTaskCompletion = async (taskId: string) => {
+    // Actualizar el estado local
     const newBoardData = JSON.parse(JSON.stringify(board));
+    let updatedTask = null;
+    let columnId = null;
+    
+    // Buscar la tarea y actualizar su estado localmente
     for (const column of newBoardData.columns) {
       const taskIndex = column.tasks.findIndex((t: Task) => t.id === taskId);
       if (taskIndex !== -1) {
+        // Guardar una referencia a la tarea antes de actualizarla
+        updatedTask = {...column.tasks[taskIndex]};
+        // Invertir el estado de completado
         column.tasks[taskIndex].completed = !column.tasks[taskIndex].completed;
+        // Actualizar la referencia de la tarea con el nuevo valor
+        updatedTask.completed = column.tasks[taskIndex].completed;
+        // Guardar el ID de la columna
+        columnId = column.id;
+        // Actualizar el estado local
         setBoard(newBoardData);
         
-        // If this is the currently selected task, update the editing state too
+        // Si esta es la tarea seleccionada actualmente, actualizar también el estado de edición
         if (selectedTask && selectedTask.id === taskId) {
           setSelectedTask({
             ...selectedTask,
@@ -358,6 +408,40 @@ const KanbanBoard = () => {
           }));
         }
         break;
+      }
+    }
+    
+    // Si encontramos y actualizamos la tarea, enviar los cambios al backend
+    if (updatedTask && columnId) {
+      try {
+        // Extraer el ID numérico de la tarea
+        const numericTaskId = parseInt(taskId.replace('task-', ''));
+        
+        if (isNaN(numericTaskId)) {
+          console.error('ID de tarea inválido:', taskId);
+          return;
+        }
+        
+        // Extraer el ID numérico de la columna
+        const numericColumnId = parseInt(columnId.replace('section-', ''));
+        
+        if (isNaN(numericColumnId)) {
+          console.error('ID de columna inválido:', columnId);
+          return;
+        }
+        
+        // Llamar al servicio para actualizar la tarea en el backend con todos los campos requeridos
+        await updateTaskService(numericTaskId, {
+          title: updatedTask.title,
+          description: updatedTask.description || '',
+          completed: updatedTask.completed,
+          column_id: numericColumnId
+        });
+        
+        console.log('Estado de completado actualizado exitosamente');
+      } catch (error) {
+        console.error('Error al actualizar estado de completado:', error);
+        // No mostramos toast de error para no interrumpir la experiencia del usuario
       }
     }
   };
