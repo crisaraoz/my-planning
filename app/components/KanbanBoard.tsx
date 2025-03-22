@@ -1,75 +1,30 @@
 "use client";
 
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Board, Column, Label, Task } from "../types/kanban";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Column as ColumnComponent } from "./kanban/Column";
 import { TaskModal } from "./kanban/TaskModal";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-
-const initialData: Board = {
-  columns: [
-    {
-      id: "todo",
-      title: "To Do",
-      tasks: [
-        {
-          id: "task-1",
-          title: "Implement authentication",
-          description: "Add user login and registration",
-          labels: [
-            { id: "backend", text: "Backend", color: "#FF9800" }
-          ]
-        },
-        {
-          id: "task-2",
-          title: "Create dashboard",
-          description: "Design and implement main dashboard",
-          labels: [
-            { id: "frontend", text: "Frontend", color: "#03A9F4" },
-            { id: "design", text: "Design", color: "#9C27B0" }
-          ]
-        },
-      ],
-    },
-    {
-      id: "in-progress",
-      title: "In Progress",
-      tasks: [
-        {
-          id: "task-3",
-          title: "API integration",
-          description: "Connect frontend with backend services",
-          labels: [
-            { id: "backend", text: "Backend", color: "#FF9800" },
-            { id: "feature", text: "Feature", color: "#4CAF50" }
-          ]
-        },
-      ],
-    },
-    {
-      id: "done",
-      title: "Done",
-      tasks: [
-        {
-          id: "task-4",
-          title: "Project setup",
-          description: "Initialize repository and configure tools",
-          labels: [
-            { id: "documentation", text: "Docs", color: "#795548" }
-          ]
-        },
-      ],
-    },
-  ],
-};
+import { 
+  updateColumn, 
+  getColumns, 
+  getTasks, 
+  deleteTask as deleteTaskService, 
+  createTask, 
+  updateTask as updateTaskService,
+  addLabelsToTask,
+  getTaskLabels
+} from "../services/kanbanService";
+import { toast } from "sonner";
 
 const KanbanBoard = () => {
-  const [board, setBoard] = useState<Board>(initialData);
+  const [board, setBoard] = useState<Board>({ columns: [] });
+  const [loading, setLoading] = useState(true);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newSectionTitle, setNewSectionTitle] = useState("");
@@ -85,6 +40,69 @@ const KanbanBoard = () => {
   const [isEditingTask, setIsEditingTask] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+
+  // Cargar datos iniciales desde el backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Obtenemos las columnas
+        const columnsData = await getColumns();
+        
+        // Mapeamos las columnas para adaptarlas al formato de nuestro componente
+        const formattedColumns = await Promise.all(columnsData.map(async (column) => {
+          // Para cada columna, obtenemos sus tareas asociadas
+          const tasksData = await getTasks(column.id);
+          
+          // Mapeamos las tareas para adaptarlas al formato de nuestro componente
+          const formattedTasks = await Promise.all(tasksData.map(async task => {
+            // Obtener las etiquetas de esta tarea
+            let taskLabels: Label[] = [];
+            try {
+              const labelData = await getTaskLabels(task.id);
+              // Convertir al formato de etiquetas de nuestro componente
+              taskLabels = labelData.map(label => ({
+                id: `label-${label.id}`,
+                text: label.text,
+                color: label.color
+              }));
+            } catch (error) {
+              console.error(`Error al obtener etiquetas para tarea ${task.id}:`, error);
+              // Si hay error, continuamos con una lista vacía de etiquetas
+            }
+            
+            return {
+              id: `task-${task.id}`,
+              title: task.title,
+              description: task.description || '',
+              completed: task.completed,
+              labels: taskLabels
+            };
+          }));
+          
+          // Retornamos la columna formateada
+          return {
+            id: `section-${column.id}`,
+            title: column.title,
+            tasks: formattedTasks
+          };
+        }));
+        
+        // Actualizamos el estado con los datos obtenidos
+        setBoard({ columns: formattedColumns });
+      } catch (error) {
+        console.error("Error al cargar datos iniciales:", error);
+        toast.error("Error al cargar datos");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
   const onDragEnd = (result: any) => {
     const { destination, source, type, draggableId } = result;
@@ -123,30 +141,73 @@ const KanbanBoard = () => {
     setBoard(newBoardData);
   };
 
-  const addNewTask = (columnId: string, labels?: Label[]) => {
+  const addNewTask = async (columnId: string, labels?: Label[]) => {
     if (!newTaskTitle.trim()) return;
 
-    const newTask: Task = {
-      id: `task-${Date.now()}`,
-      title: newTaskTitle,
-      description: newTaskDescription,
-      labels: labels,
-    };
+    try {
+      setActionInProgress('Añadiendo nueva tarea...');
+      
+      // Extraer el ID numérico de la sección
+      const numericColumnId = parseInt(columnId.replace('section-', ''));
+      
+      if (isNaN(numericColumnId)) {
+        console.error('ID de columna inválido:', columnId);
+        toast.error('ID de columna inválido');
+        return;
+      }
+      
+      // Llamar al servicio para crear una nueva tarea en el backend
+      const createdTask = await createTask({
+        title: newTaskTitle,
+        description: newTaskDescription,
+        column_id: numericColumnId,
+        order: board.columns.find(col => col.id === columnId)?.tasks.length || 0
+      });
+      
+      // Si hay etiquetas, asociarlas a la tarea creada
+      if (labels && labels.length > 0) {
+        // Transformar las etiquetas al formato esperado por el backend
+        const labelPayload = labels.map(label => ({
+          text: label.text,
+          color: label.color
+        }));
 
-    setBoard({
-      columns: board.columns.map((col) => {
-        if (col.id === columnId) {
-          return {
-            ...col,
-            tasks: [...col.tasks, newTask],
-          };
-        }
-        return col;
-      }),
-    });
+        await addLabelsToTask(createdTask.id, labelPayload);
+      }
+      
+      // Crear el objeto de tarea para actualizar el estado local
+      const newTask: Task = {
+        id: `task-${createdTask.id}`,
+        title: newTaskTitle,
+        description: newTaskDescription,
+        labels: labels || [],
+        completed: false
+      };
 
-    setNewTaskTitle("");
-    setNewTaskDescription("");
+      // Actualizar el estado local con la nueva tarea
+      setBoard({
+        columns: board.columns.map((col) => {
+          if (col.id === columnId) {
+            return {
+              ...col,
+              tasks: [...col.tasks, newTask],
+            };
+          }
+          return col;
+        }),
+      });
+
+      toast.success('Tarea creada con éxito');
+      
+      // Limpiar los campos del formulario
+      setNewTaskTitle("");
+      setNewTaskDescription("");
+    } catch (error) {
+      console.error('Error al crear nueva tarea:', error);
+      toast.error('Error al crear la tarea');
+    } finally {
+      setActionInProgress(null);
+    }
   };
 
   const addNewSection = () => {
@@ -175,33 +236,91 @@ const KanbanBoard = () => {
     });
   };
 
-  const updateTask = () => {
+  const updateTask = async () => {
     if (!selectedTask || !editingTask.title.trim()) return;
 
-    const newBoardData = JSON.parse(JSON.stringify(board));
-    const columnIndex = newBoardData.columns.findIndex(
-      (col: Column) => col.tasks.some((t: Task) => t.id === selectedTask.id)
-    );
+    try {
+      setActionInProgress('Actualizando tarea...');
+      
+      // Extraer el ID numérico de la tarea
+      const taskId = parseInt(selectedTask.id.replace('task-', ''));
+      
+      if (isNaN(taskId)) {
+        console.error('ID de tarea inválido:', selectedTask.id);
+        toast.error('ID de tarea inválido');
+        return;
+      }
+      
+      // Encontrar la columna que contiene esta tarea
+      const columnInfo = board.columns.find(col => 
+        col.tasks.some(t => t.id === selectedTask.id)
+      );
+      
+      if (!columnInfo) {
+        console.error('No se encontró la columna para la tarea');
+        toast.error('Error al actualizar la tarea');
+        return;
+      }
+      
+      // Extraer el ID numérico de la columna
+      const columnId = parseInt(columnInfo.id.replace('section-', ''));
+      
+      if (isNaN(columnId)) {
+        console.error('ID de columna inválido:', columnInfo.id);
+        toast.error('ID de columna inválido');
+        return;
+      }
+      
+      // Llamar al servicio para actualizar la tarea en el backend
+      await updateTaskService(taskId, {
+        title: editingTask.title,
+        description: editingTask.description,
+        completed: editingTask.completed,
+        column_id: columnId
+      });
+      
+      // Siempre actualizar las etiquetas, incluso si la matriz está vacía
+      // Esto permite eliminar etiquetas
+      const labelPayload = (editingTask.labels || []).map(label => ({
+        text: label.text,
+        color: label.color
+      }));
+      
+      // Llamar al servicio para actualizar las etiquetas de la tarea
+      await addLabelsToTask(taskId, labelPayload);
+      
+      // Actualizar el estado local después de una actualización exitosa
+      const newBoardData = JSON.parse(JSON.stringify(board));
+      const columnIndex = newBoardData.columns.findIndex(
+        (col: Column) => col.tasks.some((t: Task) => t.id === selectedTask.id)
+      );
 
-    if (columnIndex === -1) return;
+      if (columnIndex === -1) return;
 
-    const taskIndex = newBoardData.columns[columnIndex].tasks.findIndex(
-      (t: Task) => t.id === selectedTask.id
-    );
+      const taskIndex = newBoardData.columns[columnIndex].tasks.findIndex(
+        (t: Task) => t.id === selectedTask.id
+      );
 
-    if (taskIndex === -1) return;
+      if (taskIndex === -1) return;
 
-    newBoardData.columns[columnIndex].tasks[taskIndex] = {
-      ...selectedTask,
-      title: editingTask.title,
-      description: editingTask.description,
-      labels: editingTask.labels,
-      completed: editingTask.completed,
-    };
+      newBoardData.columns[columnIndex].tasks[taskIndex] = {
+        ...selectedTask,
+        title: editingTask.title,
+        description: editingTask.description,
+        labels: editingTask.labels || [],
+        completed: editingTask.completed,
+      };
 
-    setBoard(newBoardData);
-    setIsEditingTask(false);
-    setSelectedTask(null);
+      setBoard(newBoardData);
+      toast.success('Tarea actualizada con éxito');
+    } catch (error) {
+      console.error('Error al actualizar tarea:', error);
+      toast.error('Error al actualizar la tarea');
+    } finally {
+      setIsEditingTask(false);
+      setSelectedTask(null);
+      setActionInProgress(null);
+    }
   };
 
   const handleTaskClose = () => {
@@ -238,25 +357,56 @@ const KanbanBoard = () => {
     }
   };
 
-  const deleteTask = (taskId: string) => {
-    const newBoardData = JSON.parse(JSON.stringify(board));
-    for (const column of newBoardData.columns) {
-      const taskIndex = column.tasks.findIndex((t: Task) => t.id === taskId);
-      if (taskIndex !== -1) {
-        column.tasks.splice(taskIndex, 1);
+  const deleteTask = async (taskId: string) => {
+    try {
+      setIsDeleting(true);
+      setActionInProgress(`Eliminando tarea...`);
+      
+      // Extraer el ID numérico de la cadena 'task-123'
+      const numericId = parseInt(taskId.replace('task-', ''));
+      
+      if (isNaN(numericId)) {
+        console.error('ID de tarea inválido:', taskId);
+        toast.error('ID de tarea inválido');
+        return;
+      }
+      
+      // Llamar al servicio backend para eliminar la tarea
+      await deleteTaskService(numericId);
+      
+      // Actualizar el estado local
+      const newBoardData = JSON.parse(JSON.stringify(board));
+      let taskDeleted = false;
+      
+      for (const column of newBoardData.columns) {
+        const taskIndex = column.tasks.findIndex((t: Task) => t.id === taskId);
+        if (taskIndex !== -1) {
+          column.tasks.splice(taskIndex, 1);
+          taskDeleted = true;
+          break;
+        }
+      }
+      
+      if (taskDeleted) {
         setBoard(newBoardData);
+        toast.success('Tarea eliminada con éxito');
         
-        // If this is the currently selected task, close the modal
+        // Si esta es la tarea seleccionada actualmente, cerrar el modal
         if (selectedTask && selectedTask.id === taskId) {
           setSelectedTask(null);
           setEditingTask({ title: "", description: "", labels: [], completed: false });
           setIsEditingTask(false);
         }
-        break;
       }
+    } catch (error) {
+      console.error('Error al eliminar la tarea:', error);
+      toast.error('Error al eliminar la tarea');
+    } finally {
+      setIsDeleting(false);
+      setTaskToDelete(null);
+      setShowDeleteConfirmation(false);
+      setActionInProgress(null);
     }
-    setTaskToDelete(null);
-    setShowDeleteConfirmation(false);
   };
 
   const confirmDeleteTask = (taskId: string) => {
@@ -269,138 +419,194 @@ const KanbanBoard = () => {
     setShowDeleteConfirmation(false);
   };
 
+  const onSaveSectionTitle = async (id: string, title: string) => {
+    if (!id || !title.trim()) return;
+    
+    try {
+      setActionInProgress('Actualizando sección...');
+      
+      // Convertir el ID de string a number para la API
+      const columnId = parseInt(id.replace('section-', ''));
+      
+      if (isNaN(columnId)) {
+        console.error('Invalid column ID format');
+        toast.error('Formato de ID de columna inválido');
+        return;
+      }
+      
+      // Intenta actualizar la columna en el backend
+      await updateColumn(columnId, { title });
+      
+      // Si la actualización en el backend es exitosa, actualiza el estado local
+      setBoard({
+        columns: board.columns.map((col) => {
+          if (col.id === id) {
+            return { ...col, title: title };
+          }
+          return col;
+        }),
+      });
+      
+      toast.success("Sección actualizada con éxito");
+    } catch (error) {
+      console.error("Error al actualizar sección:", error);
+      toast.error("Error al actualizar sección");
+      
+      // Revertir cambios locales en caso de error
+      setEditingSectionTitle("");
+    } finally {
+      setEditingSectionId(null);
+      setActionInProgress(null);
+    }
+  };
+
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable droppableId="all-columns" direction="horizontal" type="column">
-        {(provided, snapshot) => (
-          <div 
-            className="flex gap-4 h-full px-4 pb-4 bg-gray-50 dark:bg-gray-900"
-            {...provided.droppableProps}
-            ref={provided.innerRef}
-          >
-            {board.columns.map((column, index) => (
-              <Draggable key={column.id} draggableId={column.id} index={index}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    className={cn(
-                      "w-72 flex-shrink-0",
-                      snapshot.isDragging ? "opacity-75" : ""
-                    )}
-                  >
-                    <ColumnComponent
-                      column={column}
-                      editingSectionId={editingSectionId}
-                      editingSectionTitle={editingSectionTitle}
-                      onSectionTitleChange={setEditingSectionTitle}
-                      onSaveSectionTitle={() => {
-                        if (!editingSectionId || !editingSectionTitle.trim()) return;
-                        setBoard({
-                          columns: board.columns.map((col) => {
-                            if (col.id === editingSectionId) {
-                              return { ...col, title: editingSectionTitle };
-                            }
-                            return col;
-                          }),
-                        });
-                        setEditingSectionId(null);
-                        setEditingSectionTitle("");
-                      }}
-                      onCancelEditSection={() => setEditingSectionId(null)}
-                      onStartEditSection={(id, title) => {
-                        setEditingSectionId(id);
-                        setEditingSectionTitle(title);
-                      }}
-                      onDeleteSection={(id) => {
-                        setBoard({
-                          columns: board.columns.filter((col) => col.id !== id),
-                        });
-                      }}
-                      onTaskClick={handleTaskClick}
-                      onToggleTaskCompletion={toggleTaskCompletion}
-                      onDeleteTask={confirmDeleteTask}
-                      onAddTask={addNewTask}
-                      newTaskTitle={newTaskTitle}
-                      newTaskDescription={newTaskDescription}
-                      onNewTaskTitleChange={(value) => setNewTaskTitle(value)}
-                      onNewTaskDescriptionChange={(value) => setNewTaskDescription(value)}
-                      dragHandleProps={provided.dragHandleProps}
-                    />
-                  </div>
-                )}
-              </Draggable>
-            ))}
-            {provided.placeholder}
-
-            <div className="w-72 flex-shrink-0">
-              <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-                <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">Add New Section</h3>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Section title"
-                    value={newSectionTitle}
-                    onChange={(e) => setNewSectionTitle(e.target.value)}
-                    className="text-sm h-7 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                  />
-                  <Button onClick={addNewSection} className="h-7 w-7 p-0 dark:bg-gray-700">
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
+    <>
+      {loading ? (
+        <div className="flex justify-center items-center h-96">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <span className="ml-2">Cargando tablero...</span>
+        </div>
+      ) : (
+        <>
+          {actionInProgress && (
+            <div className="fixed top-0 left-0 right-0 bg-primary/90 text-white py-2 px-4 flex items-center justify-center z-50">
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              <span>{actionInProgress}</span>
             </div>
-          </div>
-        )}
-      </Droppable>
+          )}
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="all-columns" direction="horizontal" type="column">
+              {(provided, snapshot) => (
+                <div 
+                  className="flex gap-4 h-full px-4 pb-4 bg-gray-50 dark:bg-gray-900"
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                >
+                  {board.columns.map((column, index) => (
+                    <Draggable key={column.id} draggableId={column.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className={cn(
+                            "w-72 flex-shrink-0",
+                            snapshot.isDragging ? "opacity-75" : ""
+                          )}
+                        >
+                          <ColumnComponent
+                            column={column}
+                            editingSectionId={editingSectionId}
+                            editingSectionTitle={editingSectionTitle}
+                            onSectionTitleChange={setEditingSectionTitle}
+                            onSaveSectionTitle={() => onSaveSectionTitle(editingSectionId!, editingSectionTitle)}
+                            onCancelEditSection={() => setEditingSectionId(null)}
+                            onStartEditSection={(id, title) => {
+                              setEditingSectionId(id);
+                              setEditingSectionTitle(title);
+                            }}
+                            onDeleteSection={(id) => {
+                              setBoard({
+                                columns: board.columns.filter((col) => col.id !== id),
+                              });
+                            }}
+                            onTaskClick={handleTaskClick}
+                            onToggleTaskCompletion={toggleTaskCompletion}
+                            onDeleteTask={confirmDeleteTask}
+                            onAddTask={addNewTask}
+                            newTaskTitle={newTaskTitle}
+                            newTaskDescription={newTaskDescription}
+                            onNewTaskTitleChange={(value) => setNewTaskTitle(value)}
+                            onNewTaskDescriptionChange={(value) => setNewTaskDescription(value)}
+                            dragHandleProps={provided.dragHandleProps}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
 
-      <TaskModal
-        selectedTask={selectedTask}
-        isEditingTask={isEditingTask}
-        editingTask={editingTask}
-        onClose={handleTaskClose}
-        onEdit={() => setIsEditingTask(true)}
-        onSave={updateTask}
-        onCancel={() => {
-          setIsEditingTask(false);
-          setSelectedTask(null);
-        }}
-        onTaskChange={handleTaskChange}
-        onDeleteTask={confirmDeleteTask}
-      />
+                  <div className="w-72 flex-shrink-0">
+                    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                      <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">Add New Section</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Section title"
+                          value={newSectionTitle}
+                          onChange={(e) => setNewSectionTitle(e.target.value)}
+                          className="text-sm h-7 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                        />
+                        <Button onClick={addNewSection} className="h-7 w-7 p-0 dark:bg-gray-700">
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Droppable>
+
+            <TaskModal
+              selectedTask={selectedTask}
+              isEditingTask={isEditingTask}
+              editingTask={editingTask}
+              onClose={handleTaskClose}
+              onEdit={() => setIsEditingTask(true)}
+              onSave={updateTask}
+              onCancel={() => {
+                setIsEditingTask(false);
+                setSelectedTask(null);
+              }}
+              onTaskChange={handleTaskChange}
+              onDeleteTask={confirmDeleteTask}
+            />
+          </DragDropContext>
+        </>
+      )}
 
       {showDeleteConfirmation && (
         <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
           <DialogContent className="sm:max-w-[400px] dark:bg-gray-800 dark:border-gray-700">
             <DialogHeader>
-              <DialogTitle className="dark:text-gray-200">Confirm Deletion</DialogTitle>
+              <DialogTitle className="dark:text-gray-200">Confirmar Eliminación</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Are you sure you want to delete this task? This action cannot be undone.
+                ¿Estás seguro de que deseas eliminar esta tarea? Esta acción no se puede deshacer.
               </p>
             </div>
             <DialogFooter className="flex gap-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={cancelDeleteTask}
+                onClick={() => {
+                  setTaskToDelete(null);
+                  setShowDeleteConfirmation(false);
+                }}
                 className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+                disabled={isDeleting}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button 
                 type="button" 
                 onClick={() => taskToDelete && deleteTask(taskToDelete)}
                 variant="destructive"
                 className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={isDeleting}
               >
-                Delete
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" /> 
+                    Eliminando...
+                  </>
+                ) : 'Eliminar'}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
-    </DragDropContext>
+    </>
   );
 };
 
