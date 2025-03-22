@@ -180,6 +180,7 @@ export function Column({
                 onTaskClick={onTaskClick}
                 onToggleComplete={onToggleTaskCompletion}
                 onDeleteTask={onDeleteTask}
+                columnTitle={column.title}
               />
             ))}
             {provided.placeholder}

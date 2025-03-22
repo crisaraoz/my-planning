@@ -49,65 +49,75 @@ const KanbanBoard = () => {
   const [showDeleteSectionConfirmation, setShowDeleteSectionConfirmation] = useState(false);
   const [isDeletingSection, setIsDeletingSection] = useState(false);
 
-  // Cargar datos iniciales desde el backend
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
+  // Función para cargar los datos del backend
+  const fetchBoardData = async (showLoading = true) => {
+    try {
+      if (showLoading) {
         setLoading(true);
+      }
+      
+      // Obtenemos las columnas
+      const columnsData = await getColumns();
+      
+      // Ordenamos las columnas según el campo 'order'
+      const sortedColumns = [...columnsData].sort((a, b) => a.order - b.order);
+      
+      // Mapeamos las columnas para adaptarlas al formato de nuestro componente
+      const formattedColumns = await Promise.all(sortedColumns.map(async (column) => {
+        // Para cada columna, obtenemos sus tareas asociadas
+        const tasksData = await getTasks(column.id);
         
-        // Obtenemos las columnas
-        const columnsData = await getColumns();
-        
-        // Mapeamos las columnas para adaptarlas al formato de nuestro componente
-        const formattedColumns = await Promise.all(columnsData.map(async (column) => {
-          // Para cada columna, obtenemos sus tareas asociadas
-          const tasksData = await getTasks(column.id);
+        // Mapeamos las tareas para adaptarlas al formato de nuestro componente
+        const formattedTasks = await Promise.all(tasksData.map(async task => {
+          // Obtener las etiquetas de esta tarea
+          let taskLabels: Label[] = [];
+          try {
+            const labelData = await getTaskLabels(task.id);
+            // Convertir al formato de etiquetas de nuestro componente
+            taskLabels = labelData.map(label => ({
+              id: `label-${label.id}`,
+              text: label.text,
+              color: label.color
+            }));
+          } catch (error) {
+            console.error(`Error al obtener etiquetas para tarea ${task.id}:`, error);
+            // Si hay error, continuamos con una lista vacía de etiquetas
+          }
           
-          // Mapeamos las tareas para adaptarlas al formato de nuestro componente
-          const formattedTasks = await Promise.all(tasksData.map(async task => {
-            // Obtener las etiquetas de esta tarea
-            let taskLabels: Label[] = [];
-            try {
-              const labelData = await getTaskLabels(task.id);
-              // Convertir al formato de etiquetas de nuestro componente
-              taskLabels = labelData.map(label => ({
-                id: `label-${label.id}`,
-                text: label.text,
-                color: label.color
-              }));
-            } catch (error) {
-              console.error(`Error al obtener etiquetas para tarea ${task.id}:`, error);
-              // Si hay error, continuamos con una lista vacía de etiquetas
-            }
-            
-            return {
-              id: `task-${task.id}`,
-              title: task.title,
-              description: task.description || '',
-              completed: task.completed,
-              labels: taskLabels
-            };
-          }));
-          
-          // Retornamos la columna formateada
           return {
-            id: `section-${column.id}`,
-            title: column.title,
-            tasks: formattedTasks
+            id: `task-${task.id}`,
+            title: task.title,
+            description: task.description || '',
+            completed: task.completed,
+            labels: taskLabels
           };
         }));
         
-        // Actualizamos el estado con los datos obtenidos
-        setBoard({ columns: formattedColumns });
-      } catch (error) {
-        console.error("Error al cargar datos iniciales:", error);
-        toast.error("Error loading data");
-      } finally {
+        // Retornamos la columna formateada
+        return {
+          id: `section-${column.id}`,
+          title: column.title,
+          tasks: formattedTasks
+        };
+      }));
+      
+      // Actualizamos el estado con los datos obtenidos
+      setBoard({ columns: formattedColumns });
+      return true;
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
+      toast.error("Error loading data");
+      return false;
+    } finally {
+      if (showLoading) {
         setLoading(false);
       }
-    };
-    
-    fetchData();
+    }
+  };
+
+  // Cargar datos iniciales desde el backend
+  useEffect(() => {
+    fetchBoardData();
   }, []);
 
   const onDragEnd = async (result: any) => {
@@ -117,61 +127,76 @@ const KanbanBoard = () => {
       return;
     }
 
-    // Si estamos arrastrando columnas
-    if (type === 'column') {
-      const newColumns = Array.from(board.columns);
-      const [movedColumn] = newColumns.splice(source.index, 1);
-      newColumns.splice(destination.index, 0, movedColumn);
+    try {
+      // Si estamos arrastrando columnas
+      if (type === 'column') {
+        const newColumns = Array.from(board.columns);
+        const [movedColumn] = newColumns.splice(source.index, 1);
+        newColumns.splice(destination.index, 0, movedColumn);
 
-      // Actualizar el estado local
-      setBoard({
-        columns: newColumns
-      });
-      
-      // Actualizar columna en el backend
-      try {
-        // Extraer el ID numérico de la columna
-        const columnId = parseInt(draggableId.replace('section-', ''));
-        
-        if (isNaN(columnId)) {
-          console.error('Invalid column ID:', draggableId);
-          return;
-        }
-        
-        // Actualizar la posición de la columna en el backend
-        await updateColumn(columnId, {
-          title: movedColumn.title,
-          order: destination.index
+        // Actualizar el estado local
+        setBoard({
+          columns: newColumns
         });
         
-        console.log('Section position updated successfully');
-      } catch (error) {
-        console.error('Error updating section position:', error);
-        // No mostramos toast de error para no interrumpir la experiencia del usuario
+        // Actualizar la posición de TODAS las columnas en el backend para asegurar consistencia
+        const updatePromises = newColumns.map(async (column, index) => {
+          // Extraer el ID numérico de la columna
+          const columnId = parseInt(column.id.replace('section-', ''));
+          
+          if (isNaN(columnId)) {
+            console.error('Invalid column ID:', column.id);
+            return null;
+          }
+          
+          try {
+            // Actualizar la columna en el backend con su nuevo índice como order
+            return await updateColumn(columnId, {
+              title: column.title,
+              order: index
+            });
+          } catch (error) {
+            console.error(`Error updating column ${columnId}:`, error);
+            return null;
+          }
+        });
+        
+        // Esperar a que todas las actualizaciones de columnas terminen
+        await Promise.all(updatePromises);
+        console.log('All section positions updated successfully');
+
+        return;
       }
 
-      return;
-    }
+      // Si estamos arrastrando tareas
+      const newBoardData = JSON.parse(JSON.stringify(board));
+      const sourceColumnIndex = newBoardData.columns.findIndex(
+        (col: Column) => col.id === source.droppableId
+      );
+      const destColumnIndex = newBoardData.columns.findIndex(
+        (col: Column) => col.id === destination.droppableId
+      );
 
-    // Si estamos arrastrando tareas
-    const newBoardData = JSON.parse(JSON.stringify(board));
-    const sourceColumnIndex = newBoardData.columns.findIndex(
-      (col: Column) => col.id === source.droppableId
-    );
-    const destColumnIndex = newBoardData.columns.findIndex(
-      (col: Column) => col.id === destination.droppableId
-    );
+      if (sourceColumnIndex === -1 || destColumnIndex === -1) {
+        console.error('No se encontró columna de origen o destino');
+        return;
+      }
 
-    if (sourceColumnIndex === -1 || destColumnIndex === -1) return;
+      const [movedTask] = newBoardData.columns[sourceColumnIndex].tasks.splice(source.index, 1);
+      newBoardData.columns[destColumnIndex].tasks.splice(destination.index, 0, movedTask);
 
-    const [movedTask] = newBoardData.columns[sourceColumnIndex].tasks.splice(source.index, 1);
-    newBoardData.columns[destColumnIndex].tasks.splice(destination.index, 0, movedTask);
+      // Si el destino es la columna "Done" o "Cancelled", marcar la tarea como completada automáticamente
+      const destinationColumnTitle = newBoardData.columns[destColumnIndex].title;
+      if (destinationColumnTitle === "Done" || destinationColumnTitle === "Cancelled") {
+        movedTask.completed = true;
+      } else {
+        // Si el destino NO es "Done" o "Cancelled", desmarcar la tarea como no completada
+        movedTask.completed = false;
+      }
 
-    // Actualizar el estado local
-    setBoard(newBoardData);
-    
-    // Guardar el cambio en el backend sin mostrar indicador de carga
-    try {
+      // Actualizar el estado local inmediatamente
+      setBoard(newBoardData);
+      
       // Extraer el ID numérico de la tarea
       const taskId = parseInt(draggableId.replace('task-', ''));
       
@@ -192,7 +217,7 @@ const KanbanBoard = () => {
       const originalTask = movedTask;
       
       // Llamar al servicio para actualizar la tarea en el backend con todos los campos requeridos
-      await updateTaskService(taskId, {
+      const response = await updateTaskService(taskId, {
         title: originalTask.title,
         description: originalTask.description || '',
         completed: originalTask.completed,
@@ -200,10 +225,14 @@ const KanbanBoard = () => {
         order: destination.index
       });
       
-      console.log('Tarea actualizada exitosamente');
+      console.log('Tarea actualizada exitosamente', response);
     } catch (error) {
-      console.error('Error al actualizar posición de tarea:', error);
-      // No mostramos toast de error para no interrumpir la experiencia del usuario
+      console.error('Error en onDragEnd:', error);
+      // Mostrar un toast de error para informar al usuario
+      toast.error('Error al actualizar la tarea. Intente de nuevo.');
+      
+      // Recargar el tablero para restaurar el estado correcto
+      fetchBoardData();
     }
   };
 
