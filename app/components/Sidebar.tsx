@@ -13,9 +13,9 @@ const Sidebar = () => {
 
   const menuItems = [
     { icon: Home, label: "Home", href: "/" },
-    { icon: Inbox, label: "My Tasks", href: "/tasks" },
-    { icon: BarChart2, label: "Dashboard", href: "/dashboard" },
-    { icon: Users, label: "Team", href: "/team" },
+    { icon: Inbox, label: "My Tasks", href: "/tasks", disabled: true },
+    { icon: BarChart2, label: "Dashboard", href: "/dashboard", disabled: true },
+    { icon: Users, label: "Team", href: "/team", disabled: true },
   ];
 
   return (
@@ -60,8 +60,10 @@ const Sidebar = () => {
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors",
-                  isCollapsed ? "p-3 justify-center" : "px-4 py-3"
+                  isCollapsed ? "p-3 justify-center" : "px-4 py-3",
+                  item.disabled ? "opacity-50 cursor-not-allowed" : ""
                 )}
+                onClick={item.disabled ? (e) => e.preventDefault() : undefined}
               >
                 <item.icon className="w-5 h-5" />
                 {!isCollapsed && <span>{item.label}</span>}
