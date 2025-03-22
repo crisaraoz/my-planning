@@ -80,3 +80,44 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media (max-width: 768px) {
+  body {
+    /* Ajustes generales para pantallas pequeñas */
+    padding: 0;
+    margin: 0;
+  }
+
+  .flex {
+    flex-direction: column; /* Cambia la dirección del flex en pantallas pequeñas */
+  }
+
+  .h-screen {
+    height: auto; /* Permite que el contenido se ajuste a la altura */
+  }
+
+  .w-72 {
+    width: 100%; /* Asegura que los elementos ocupen el 100% del ancho en pantallas pequeñas */
+  }
+
+  .sidebar {
+    flex-direction: row; /* Cambia la dirección del flex a horizontal */
+    width: 100%; /* Asegura que el sidebar ocupe el 100% del ancho */
+    position: relative; /* Cambia la posición de la barra lateral */
+    justify-content: space-around; /* Asegura que los elementos se distribuyan horizontalmente */
+  }
+
+  .sidebar .p-4 {
+    padding: 0.5rem; /* Ajusta el padding para que se vea mejor en pantallas pequeñas */
+  }
+
+  .sidebar .flex {
+    flex-direction: row; /* Asegura que los elementos dentro del sidebar se alineen horizontalmente */
+  }
+
+  .sidebar nav {
+    display: flex; /* Asegura que el nav se muestre como un contenedor flex */
+    justify-content: space-around; /* Distribuye los íconos uniformemente */
+    width: 100%; /* Asegura que el nav ocupe el 100% del ancho */
+  }
+}

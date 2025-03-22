@@ -100,7 +100,7 @@ export function Column({
   };
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg w-72 flex-shrink-0">
+    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg w-full flex-shrink-0">
       <div className="flex justify-between items-center mb-3">
         {editingSectionId === column.id ? (
           <div className="flex gap-1 flex-1">
