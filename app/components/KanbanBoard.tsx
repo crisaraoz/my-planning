@@ -23,6 +23,7 @@ import {
   createColumn
 } from "../services/kanbanService";
 import { toast } from "sonner";
+import Chat from "../components/Chat";
 
 const KanbanBoard = () => {
   const [board, setBoard] = useState<Board>({ columns: [] });
@@ -876,6 +877,8 @@ const KanbanBoard = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      <Chat />
     </>
   );
 };

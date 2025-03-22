@@ -1,0 +1,63 @@
+.text-gradient {
+    background: linear-gradient(90deg, #ff0080, #ff8c00, #ffd700, #00ff00, #00ffff, #0000ff, #800080);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    transition: color 0.3s ease;
+}
+
+.text-gradient:hover {
+    animation: rainbow 1.5s linear infinite;
+}
+
+@keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+.chatButton {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(255, 0, 128, 0.3);
+    border: 1px solid transparent;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 10px rgba(255, 0, 128, 0.3); }
+    50% { box-shadow: 0 0 15px rgba(255, 136, 0, 0.5); }
+    100% { box-shadow: 0 0 10px rgba(255, 0, 128, 0.3); }
+}
+
+.chatButton::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, #ff0080, #ff8c00, #ffd700, #00ff00, #00ffff, #0000ff, #800080);
+    background-size: 200% 200%;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+}
+
+.chatButton:hover::before {
+    opacity: 1;
+    animation: gradient 3s ease infinite;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
