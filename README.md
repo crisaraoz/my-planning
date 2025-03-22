@@ -13,10 +13,10 @@ Este es un proyecto de gestión de tareas tipo Kanban, que permite a los usuario
 - **Entorno**: Python 3.x
 
 ### Frontend
-- **Framework**: React
+- **Framework**: React + Next
 - **Librerías**: Axios (para las solicitudes HTTP), React Router (para la navegación)
-- **Estilos**: CSS, posiblemente con alguna librería como Tailwind CSS o Bootstrap
-
+- **Estilos**: Tailwind CSS 
+  
 ## Levantar el Proyecto Localmente
 
 ### Backend
@@ -50,7 +50,7 @@ Este es un proyecto de gestión de tareas tipo Kanban, que permite a los usuario
 5. **Configura las variables de entorno**:
    Asegúrate de tener un archivo `.env` en la carpeta `backend` con la siguiente configuración:
    ```plaintext
-   DATABASE_URL=postgresql://bd-planning_owner:npg_JXqi4ph0wWVy@ep-young-firefly-a5ci8ouj-pooler.us-east-2.aws.neon.tech/bd-planning?sslmode=require
+   DATABASE_URL=[LINK DE CONEXIÓN A LA BASE DE DATOS QUE UTILIZES/CREASTE]
    ```
 
 6. **Levanta el servidor**:
@@ -81,5 +81,9 @@ Este es un proyecto de gestión de tareas tipo Kanban, que permite a los usuario
 ## Contribuciones
 Si deseas contribuir a este proyecto, por favor abre un issue o envía un pull request.
 
+5. **LIVE DEMO**:
+   https://my-planning-tawny.vercel.app/
+
 ## Licencia
 Este proyecto está bajo la Licencia MIT.
+
