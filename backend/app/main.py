@@ -20,9 +20,12 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, especifica los orígenes permitidos
+    allow_origins=[
+        "https://my-planning-crisaraozs-projects.vercel.app",
+        "http://localhost:3000",
+    ],  # Dominios específicos permitidos
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
