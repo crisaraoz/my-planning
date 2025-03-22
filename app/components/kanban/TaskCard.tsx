@@ -38,10 +38,9 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
           {...provided.dragHandleProps}
           onClick={() => onTaskClick(task)}
           className={cn(
-            "bg-white dark:bg-gray-700 p-3 rounded-lg shadow mb-2 text-sm select-none cursor-pointer hover:shadow-md transition-shadow dark:text-gray-200 group",
+            "bg-white dark:bg-gray-700 p-3 rounded-lg shadow mb-2 text-sm select-none cursor-pointer hover:shadow-md transition-shadow dark:text-gray-200 group w-full",
             snapshot.isDragging ? "opacity-75 shadow-lg ring-2 ring-gray-200 dark:ring-gray-600" : "",
-            task.completed && !isCancelled ? "border-l-4 border-blue-500" : "",
-            isCancelled ? "border-l-4 border-red-500" : ""
+            task.completed ? "border-l-4 border-blue-500" : ""
           )}
           style={provided.draggableProps.style}
         >
@@ -51,10 +50,7 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
               onClick={handleToggleComplete}
             >
               {task.completed ? (
-                <div className={cn(
-                  "w-4 h-4 rounded-sm flex items-center justify-center",
-                  isCancelled ? "bg-red-500" : "bg-blue-500"
-                )}>
+                <div className="w-4 h-4 rounded-sm flex items-center justify-center bg-blue-500">
                   <Check className="w-3 h-3 text-white" />
                 </div>
               ) : (
@@ -78,25 +74,19 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
               )}
               <h4 className={cn(
                 "font-medium mb-1",
-                task.completed && !isCancelled && "line-through text-gray-500 dark:text-gray-400",
-                isCancelled && "line-through text-red-500 dark:text-red-400"
+                task.completed && "line-through text-gray-500 dark:text-gray-400"
               )}>
                 {task.title}
               </h4>
               {task.description && (
-                <p className={cn(
-                  "text-xs line-clamp-2",
-                  task.completed && !isCancelled && "text-gray-600 dark:text-gray-400",
-                  isCancelled && "text-red-500/70 dark:text-red-400/70",
-                  !task.completed && "text-gray-600 dark:text-gray-400"
-                )}>
+                <p className="text-xs line-clamp-2 text-gray-600 dark:text-gray-400">
                   {task.description}
                 </p>
               )}
             </div>
 
             <div 
-              className="flex-shrink-0 mt-0.5 cursor-pointer text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity" 
+              className="flex-shrink-0 mt-0.5 cursor-pointer text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
               onClick={handleDeleteTask}
             >
               <Trash2 className="w-4 h-4" />

@@ -694,7 +694,7 @@ const KanbanBoard = () => {
             <Droppable droppableId="all-columns" direction="horizontal" type="column">
               {(provided, snapshot) => (
                 <div 
-                  className="flex gap-4 h-full px-4 pb-4 bg-gray-50 dark:bg-gray-900"
+                  className="flex gap-4 h-full px-4 pb-4 bg-gray-50 dark:bg-gray-900 overflow-x-auto"
                   {...provided.droppableProps}
                   ref={provided.innerRef}
                 >
