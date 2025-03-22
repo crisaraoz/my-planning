@@ -40,6 +40,7 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
           className={cn(
             "bg-white dark:bg-gray-700 p-3 rounded-lg shadow mb-2 text-sm select-none cursor-pointer hover:shadow-md transition-shadow dark:text-gray-200 group w-full",
             snapshot.isDragging ? "opacity-75 shadow-lg ring-2 ring-gray-200 dark:ring-gray-600" : "",
+            task.completed && isCancelled ? "border-l-4 border-red-500" : 
             task.completed ? "border-l-4 border-blue-500" : ""
           )}
           style={provided.draggableProps.style}
@@ -50,7 +51,10 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
               onClick={handleToggleComplete}
             >
               {task.completed ? (
-                <div className="w-4 h-4 rounded-sm flex items-center justify-center bg-blue-500">
+                <div className={cn(
+                  "w-4 h-4 rounded-sm flex items-center justify-center",
+                  isCancelled ? "bg-red-500" : "bg-blue-500"
+                )}>
                   <Check className="w-3 h-3 text-white" />
                 </div>
               ) : (
