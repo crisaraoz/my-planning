@@ -3,7 +3,7 @@
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useState, useEffect } from "react";
 import { Board, Column, Label, Task } from "../types/kanban";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Column as ColumnComponent } from "./kanban/Column";
@@ -18,7 +18,9 @@ import {
   createTask, 
   updateTask as updateTaskService,
   addLabelsToTask,
-  getTaskLabels
+  getTaskLabels,
+  deleteColumn,
+  createColumn
 } from "../services/kanbanService";
 import { toast } from "sonner";
 
@@ -43,6 +45,9 @@ const KanbanBoard = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+  const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
+  const [showDeleteSectionConfirmation, setShowDeleteSectionConfirmation] = useState(false);
+  const [isDeletingSection, setIsDeletingSection] = useState(false);
 
   // Cargar datos iniciales desde el backend
   useEffect(() => {
@@ -96,7 +101,7 @@ const KanbanBoard = () => {
         setBoard({ columns: formattedColumns });
       } catch (error) {
         console.error("Error al cargar datos iniciales:", error);
-        toast.error("Error al cargar datos");
+        toast.error("Error loading data");
       } finally {
         setLoading(false);
       }
@@ -118,9 +123,32 @@ const KanbanBoard = () => {
       const [movedColumn] = newColumns.splice(source.index, 1);
       newColumns.splice(destination.index, 0, movedColumn);
 
+      // Actualizar el estado local
       setBoard({
         columns: newColumns
       });
+      
+      // Actualizar columna en el backend
+      try {
+        // Extraer el ID numérico de la columna
+        const columnId = parseInt(draggableId.replace('section-', ''));
+        
+        if (isNaN(columnId)) {
+          console.error('Invalid column ID:', draggableId);
+          return;
+        }
+        
+        // Actualizar la posición de la columna en el backend
+        await updateColumn(columnId, {
+          title: movedColumn.title,
+          order: destination.index
+        });
+        
+        console.log('Section position updated successfully');
+      } catch (error) {
+        console.error('Error updating section position:', error);
+        // No mostramos toast de error para no interrumpir la experiencia del usuario
+      }
 
       return;
     }
@@ -167,7 +195,7 @@ const KanbanBoard = () => {
       await updateTaskService(taskId, {
         title: originalTask.title,
         description: originalTask.description || '',
-        completed: originalTask.completed || false,
+        completed: originalTask.completed,
         column_id: destColumnId,
         order: destination.index
       });
@@ -184,14 +212,14 @@ const KanbanBoard = () => {
 
     try {
       setIsSaving(true);
-      setActionInProgress('Añadiendo nueva tarea...');
+      setActionInProgress('Adding new task...');
       
       // Extraer el ID numérico de la sección
       const numericColumnId = parseInt(columnId.replace('section-', ''));
       
       if (isNaN(numericColumnId)) {
         console.error('ID de columna inválido:', columnId);
-        toast.error('ID de columna inválido');
+        toast.error('Invalid column ID');
         return;
       }
       
@@ -236,34 +264,52 @@ const KanbanBoard = () => {
         }),
       });
 
-      toast.success('Tarea creada con éxito');
+      toast.success('Task created successfully');
       
       // Limpiar los campos del formulario
       setNewTaskTitle("");
       setNewTaskDescription("");
     } catch (error) {
       console.error('Error al crear nueva tarea:', error);
-      toast.error('Error al crear la tarea');
+      toast.error('Error creating task');
     } finally {
       setIsSaving(false);
       setActionInProgress(null);
     }
   };
 
-  const addNewSection = () => {
+  const addNewSection = async () => {
     if (!newSectionTitle.trim()) return;
 
-    const newSection: Column = {
-      id: `section-${Date.now()}`,
-      title: newSectionTitle,
-      tasks: [],
-    };
+    try {
+      setActionInProgress('Adding new section...');
+      
+      // Llamar al servicio para crear una nueva columna en el backend
+      const createdColumn = await createColumn({
+        title: newSectionTitle,
+        order: board.columns.length
+      });
+      
+      // Crear el objeto de sección para actualizar el estado local
+      const newSection: Column = {
+        id: `section-${createdColumn.id}`,
+        title: newSectionTitle,
+        tasks: [],
+      };
 
-    setBoard({
-      columns: [...board.columns, newSection],
-    });
+      // Actualizar el estado local
+      setBoard({
+        columns: [...board.columns, newSection],
+      });
 
-    setNewSectionTitle("");
+      setNewSectionTitle("");
+      toast.success('Section created successfully');
+    } catch (error) {
+      console.error('Error al crear nueva sección:', error);
+      toast.error('Error creating section');
+    } finally {
+      setActionInProgress(null);
+    }
   };
 
   const handleTaskClick = (task: Task) => {
@@ -281,14 +327,14 @@ const KanbanBoard = () => {
 
     try {
       setIsSaving(true);
-      setActionInProgress('Actualizando tarea...');
+      setActionInProgress('Updating task...');
       
       // Extraer el ID numérico de la tarea
       const taskId = parseInt(selectedTask.id.replace('task-', ''));
       
       if (isNaN(taskId)) {
         console.error('ID de tarea inválido:', selectedTask.id);
-        toast.error('ID de tarea inválido');
+        toast.error('Invalid task ID');
         return;
       }
       
@@ -299,7 +345,7 @@ const KanbanBoard = () => {
       
       if (!columnInfo) {
         console.error('No se encontró la columna para la tarea');
-        toast.error('Error al actualizar la tarea');
+        toast.error('Error updating task');
         return;
       }
       
@@ -308,7 +354,7 @@ const KanbanBoard = () => {
       
       if (isNaN(columnId)) {
         console.error('ID de columna inválido:', columnInfo.id);
-        toast.error('ID de columna inválido');
+        toast.error('Invalid column ID');
         return;
       }
       
@@ -353,10 +399,10 @@ const KanbanBoard = () => {
       };
 
       setBoard(newBoardData);
-      toast.success('Tarea actualizada con éxito');
+      toast.success('Task updated successfully');
     } catch (error) {
       console.error('Error al actualizar tarea:', error);
-      toast.error('Error al actualizar la tarea');
+      toast.error('Error updating task');
     } finally {
       setIsSaving(false);
       setIsEditingTask(false);
@@ -438,7 +484,7 @@ const KanbanBoard = () => {
           column_id: numericColumnId
         });
         
-        console.log('Estado de completado actualizado exitosamente');
+        console.log('Completion status updated successfully');
       } catch (error) {
         console.error('Error al actualizar estado de completado:', error);
         // No mostramos toast de error para no interrumpir la experiencia del usuario
@@ -449,14 +495,14 @@ const KanbanBoard = () => {
   const deleteTask = async (taskId: string) => {
     try {
       setIsDeleting(true);
-      setActionInProgress(`Eliminando tarea...`);
+      setActionInProgress(`Deleting task...`);
       
       // Extraer el ID numérico de la cadena 'task-123'
       const numericId = parseInt(taskId.replace('task-', ''));
       
       if (isNaN(numericId)) {
         console.error('ID de tarea inválido:', taskId);
-        toast.error('ID de tarea inválido');
+        toast.error('Invalid task ID');
         return;
       }
       
@@ -478,7 +524,7 @@ const KanbanBoard = () => {
       
       if (taskDeleted) {
         setBoard(newBoardData);
-        toast.success('Tarea eliminada con éxito');
+        toast.success('Task deleted successfully');
         
         // Si esta es la tarea seleccionada actualmente, cerrar el modal
         if (selectedTask && selectedTask.id === taskId) {
@@ -489,7 +535,7 @@ const KanbanBoard = () => {
       }
     } catch (error) {
       console.error('Error al eliminar la tarea:', error);
-      toast.error('Error al eliminar la tarea');
+      toast.error('Error deleting task');
     } finally {
       setIsDeleting(false);
       setTaskToDelete(null);
@@ -512,14 +558,14 @@ const KanbanBoard = () => {
     if (!id || !title.trim()) return;
     
     try {
-      setActionInProgress('Actualizando sección...');
+      setActionInProgress('Updating section...');
       
       // Convertir el ID de string a number para la API
       const columnId = parseInt(id.replace('section-', ''));
       
       if (isNaN(columnId)) {
         console.error('Invalid column ID format');
-        toast.error('Formato de ID de columna inválido');
+        toast.error('Invalid column ID format');
         return;
       }
       
@@ -536,10 +582,10 @@ const KanbanBoard = () => {
         }),
       });
       
-      toast.success("Sección actualizada con éxito");
+      toast.success("Section updated successfully");
     } catch (error) {
       console.error("Error al actualizar sección:", error);
-      toast.error("Error al actualizar sección");
+      toast.error("Error updating section");
       
       // Revertir cambios locales en caso de error
       setEditingSectionTitle("");
@@ -549,18 +595,69 @@ const KanbanBoard = () => {
     }
   };
 
+  const confirmDeleteSection = (sectionId: string) => {
+    setSectionToDelete(sectionId);
+    setShowDeleteSectionConfirmation(true);
+  };
+
+  const cancelDeleteSection = () => {
+    setSectionToDelete(null);
+    setShowDeleteSectionConfirmation(false);
+  };
+
+  const deleteSection = async (sectionId: string) => {
+    try {
+      setIsDeletingSection(true);
+      setActionInProgress('Deleting section...');
+      
+      // Extraer el ID numérico de la cadena 'section-123'
+      const numericId = parseInt(sectionId.replace('section-', ''));
+      
+      if (isNaN(numericId)) {
+        console.error('ID de sección inválido:', sectionId);
+        toast.error('Invalid section ID');
+        return;
+      }
+      
+      // Llamar al servicio backend para eliminar la sección
+      await deleteColumn(numericId);
+      
+      // Actualizar el estado local
+      setBoard({
+        columns: board.columns.filter((col) => col.id !== sectionId),
+      });
+      
+      toast.success('Section deleted successfully');
+    } catch (error) {
+      console.error('Error al eliminar la sección:', error);
+      toast.error('Error deleting section');
+    } finally {
+      setIsDeletingSection(false);
+      setSectionToDelete(null);
+      setShowDeleteSectionConfirmation(false);
+      setActionInProgress(null);
+    }
+  };
+
   return (
     <>
       {loading ? (
-        <div className="flex justify-center items-center h-96">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="ml-2">Cargando tablero...</span>
+        <div className="flex flex-col justify-center items-center h-96">
+          <div className="relative">
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            <Zap className="w-5 h-5 text-yellow-400 absolute top-0 right-0 animate-pulse" />
+            <Zap className="w-5 h-5 text-blue-400 absolute bottom-0 left-0 animate-pulse" />
+          </div>
+          <span className="mt-4 text-base font-medium text-primary">Loading your tasks...</span>
         </div>
       ) : (
         <>
           {actionInProgress && (
             <div className="fixed top-0 left-0 right-0 bg-primary/90 text-white py-2 px-4 flex items-center justify-center z-50">
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              <div className="relative">
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                <Zap className="w-3 h-3 text-yellow-300 absolute -top-1 -right-1 animate-bounce" />
+              </div>
               <span>{actionInProgress}</span>
             </div>
           )}
@@ -594,11 +691,7 @@ const KanbanBoard = () => {
                               setEditingSectionId(id);
                               setEditingSectionTitle(title);
                             }}
-                            onDeleteSection={(id) => {
-                              setBoard({
-                                columns: board.columns.filter((col) => col.id !== id),
-                              });
-                            }}
+                            onDeleteSection={confirmDeleteSection}
                             onTaskClick={handleTaskClick}
                             onToggleTaskCompletion={toggleTaskCompletion}
                             onDeleteTask={confirmDeleteTask}
@@ -626,10 +719,21 @@ const KanbanBoard = () => {
                           onChange={(e) => setNewSectionTitle(e.target.value)}
                           className="text-sm h-7 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
                         />
-                        <Button onClick={addNewSection} className="h-7 w-7 p-0 dark:bg-gray-700">
+                        <Button 
+                          onClick={addNewSection} 
+                          className={`h-7 w-7 p-0 ${
+                            newSectionTitle.length < 3 
+                              ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-50' 
+                              : 'dark:bg-gray-700 hover:bg-primary/90'
+                          }`}
+                          disabled={newSectionTitle.length < 3}
+                        >
                           <Plus className="w-3 h-3" />
                         </Button>
                       </div>
+                      {newSectionTitle.length > 0 && newSectionTitle.length < 3 && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Section name must be at least 3 characters</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -659,11 +763,11 @@ const KanbanBoard = () => {
         <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
           <DialogContent className="sm:max-w-[400px] dark:bg-gray-800 dark:border-gray-700">
             <DialogHeader>
-              <DialogTitle className="dark:text-gray-200">Confirmar Eliminación</DialogTitle>
+              <DialogTitle className="dark:text-gray-200">Confirm Deletion</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                ¿Estás seguro de que deseas eliminar esta tarea? Esta acción no se puede deshacer.
+                Are you sure you want to delete this task? This action cannot be undone.
               </p>
             </div>
             <DialogFooter className="flex gap-2">
@@ -677,7 +781,7 @@ const KanbanBoard = () => {
                 className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
                 disabled={isDeleting}
               >
-                Cancelar
+                Cancel
               </Button>
               <Button 
                 type="button" 
@@ -688,10 +792,56 @@ const KanbanBoard = () => {
               >
                 {isDeleting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" /> 
-                    Eliminando...
+                    <div className="relative">
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      <Zap className="w-2 h-2 text-red-300 absolute -top-1 -right-1 animate-bounce" />
+                    </div>
+                    Deleting...
                   </>
-                ) : 'Eliminar'}
+                ) : 'Delete'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {showDeleteSectionConfirmation && (
+        <Dialog open={showDeleteSectionConfirmation} onOpenChange={setShowDeleteSectionConfirmation}>
+          <DialogContent className="sm:max-w-[400px] dark:bg-gray-800 dark:border-gray-700">
+            <DialogHeader>
+              <DialogTitle className="dark:text-gray-200">Confirm Section Deletion</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Are you sure you want to delete this section? All tasks in this section will also be deleted. This action cannot be undone.
+              </p>
+            </div>
+            <DialogFooter className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={cancelDeleteSection}
+                className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+                disabled={isDeletingSection}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="button" 
+                onClick={() => sectionToDelete && deleteSection(sectionToDelete)}
+                variant="destructive"
+                className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={isDeletingSection}
+              >
+                {isDeletingSection ? (
+                  <>
+                    <div className="relative">
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      <Zap className="w-2 h-2 text-red-300 absolute -top-1 -right-1 animate-bounce" />
+                    </div>
+                    Deleting...
+                  </>
+                ) : 'Delete'}
               </Button>
             </DialogFooter>
           </DialogContent>
