@@ -101,6 +101,7 @@
   }
 
   .sidebar {
+    height: 5rem;
     flex-direction: row; /* Cambia la dirección del flex a horizontal */
     width: 100%; /* Asegura que el sidebar ocupe el 100% del ancho */
     position: relative; /* Cambia la posición de la barra lateral */

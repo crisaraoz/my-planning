@@ -58,11 +58,17 @@ const Sidebar = () => {
       )}
 
       <div className="p-4 flex flex-col items-center">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
+        <div className={cn(
+          "flex items-center gap-2 mb-8",
+          isMobile ? "justify-start w-12" : ""
+        )}>
+          <div className={cn(
+            "flex-shrink-0 w-8 h-8 flex items-center",
+            isMobile ? "justify-start mt-8" : "justify-center"
+          )}>
             <ThemeToggle />
           </div>
-          {!isCollapsed && <span className="text-xl font-bold">Planning</span>}
+          {/* {!isCollapsed && !isMobile && <span className="text-xl font-bold">Planning</span>} */}
         </div>
         
         <nav className="space-y-2">
