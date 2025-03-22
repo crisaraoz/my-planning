@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { X, Plus, Check, Square, Trash2 } from "lucide-react";
+import { X, Plus, Check, Square, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -28,6 +28,7 @@ interface TaskModalProps {
   onCancel: () => void;
   onTaskChange: (field: "title" | "description" | "labels" | "completed", value: any) => void;
   onDeleteTask?: (taskId: string) => void;
+  isSaving?: boolean;
 }
 
 // Opciones predefinidas de etiquetas
@@ -50,6 +51,7 @@ export function TaskModal({
   onCancel,
   onTaskChange,
   onDeleteTask,
+  isSaving = false
 }: TaskModalProps) {
   const [showLabelSelector, setShowLabelSelector] = useState(false);
 
@@ -228,6 +230,7 @@ export function TaskModal({
                 variant="destructive"
                 onClick={() => selectedTask && onDeleteTask && onDeleteTask(selectedTask.id)}
                 className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={isSaving}
               >
                 <Trash2 className="w-4 h-4 mr-1" />
                 Delete
@@ -238,6 +241,7 @@ export function TaskModal({
                   variant="outline"
                   onClick={onCancel}
                   className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+                  disabled={isSaving}
                 >
                   Cancel
                 </Button>
@@ -245,8 +249,14 @@ export function TaskModal({
                   type="button" 
                   onClick={onSave}
                   className="dark:bg-gray-700 dark:hover:bg-gray-600"
+                  disabled={isSaving}
                 >
-                  Save Changes
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : "Guardar Cambios"}
                 </Button>
               </div>
             </>

@@ -9,9 +9,10 @@ interface TaskCardProps {
   onTaskClick: (task: Task) => void;
   onToggleComplete?: (taskId: string) => void;
   onDeleteTask?: (taskId: string) => void;
+  columnTitle?: string;
 }
 
-export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteTask }: TaskCardProps) {
+export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteTask, columnTitle }: TaskCardProps) {
   const handleToggleComplete = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the card click
     if (onToggleComplete) {
@@ -26,6 +27,8 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
     }
   };
 
+  const isCancelled = columnTitle === "Cancelled";
+
   return (
     <Draggable key={task.id} draggableId={task.id} index={index}>
       {(provided, snapshot) => (
@@ -36,7 +39,9 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
           onClick={() => onTaskClick(task)}
           className={cn(
             "bg-white dark:bg-gray-700 p-3 rounded-lg shadow mb-2 text-sm select-none cursor-pointer hover:shadow-md transition-shadow dark:text-gray-200 group",
-            snapshot.isDragging ? "opacity-75 shadow-lg ring-2 ring-gray-200 dark:ring-gray-600" : ""
+            snapshot.isDragging ? "opacity-75 shadow-lg ring-2 ring-gray-200 dark:ring-gray-600" : "",
+            task.completed && !isCancelled ? "border-l-4 border-blue-500" : "",
+            isCancelled ? "border-l-4 border-red-500" : ""
           )}
           style={provided.draggableProps.style}
         >
@@ -46,7 +51,10 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
               onClick={handleToggleComplete}
             >
               {task.completed ? (
-                <div className="w-4 h-4 rounded-sm bg-blue-500 flex items-center justify-center">
+                <div className={cn(
+                  "w-4 h-4 rounded-sm flex items-center justify-center",
+                  isCancelled ? "bg-red-500" : "bg-blue-500"
+                )}>
                   <Check className="w-3 h-3 text-white" />
                 </div>
               ) : (
@@ -70,12 +78,18 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
               )}
               <h4 className={cn(
                 "font-medium mb-1",
-                task.completed && "line-through text-gray-500 dark:text-gray-400"
+                task.completed && !isCancelled && "line-through text-gray-500 dark:text-gray-400",
+                isCancelled && "line-through text-red-500 dark:text-red-400"
               )}>
                 {task.title}
               </h4>
               {task.description && (
-                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                <p className={cn(
+                  "text-xs line-clamp-2",
+                  task.completed && !isCancelled && "text-gray-600 dark:text-gray-400",
+                  isCancelled && "text-red-500/70 dark:text-red-400/70",
+                  !task.completed && "text-gray-600 dark:text-gray-400"
+                )}>
                   {task.description}
                 </p>
               )}
