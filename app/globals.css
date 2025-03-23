@@ -153,12 +153,87 @@ html, body {
 }
 
 @media (max-width: 768px) {
+  /* Global fix for all tags in the entire app */
+  [class*="rounded-full"] {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    display: inline-block !important;
+  }
+  
   body {
     /* Ajustes generales para pantallas pequeñas */
     padding: 0;
     margin: 0;
     min-height: 100vh; /* Ensure body takes up at least full viewport height */
     overflow-x: hidden; /* Prevent horizontal scrolling */
+  }
+
+  /* Fix for tag containers - keep them in row direction */
+  .flex.flex-wrap.gap-1,
+  .flex.flex-wrap.gap-1.mb-2,
+  .flex.flex-wrap.gap-1.mb-3 {
+    flex-direction: row !important;
+    width: 100% !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  /* Hide scrollbars for tag containers */
+  .flex.flex-wrap.gap-1::-webkit-scrollbar,
+  .flex.flex-wrap.gap-1.mb-2::-webkit-scrollbar,
+  .flex.flex-wrap.gap-1.mb-3::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  /* Prevent labels from stretching on mobile */
+  .flex.flex-wrap.gap-1 > span,
+  .flex.flex-wrap.gap-1.mb-2 > span,
+  .flex.flex-wrap.gap-1.mb-3 > span {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    max-width: fit-content !important;
+  }
+  
+  /* Super specific fix for tags on mobile */
+  .bg-white.dark\:bg-gray-700 .flex-grow .flex span[style] {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    display: inline-block !important; 
+    max-width: fit-content !important;
+  }
+  
+  /* Specific fix for the backend orange tag */
+  span[style*="FF9800"] {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    display: inline-block !important;
+    box-sizing: content-box !important;
+  }
+  
+  /* Ajustes para encabezados de columna en móviles - cambiar de vertical a horizontal */
+  .bg-gray-100.dark\:bg-gray-800 > div:first-child {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Poner el número junto al título en móviles */
+  .bg-gray-100.dark\:bg-gray-800 > div:first-child > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; 
+  }
+
+  .bg-gray-100.dark\:bg-gray-800 > div:first-child .bg-gray-200.dark\:bg-gray-700 {
+    margin-left: 0.25rem;
+  }
+
+  /* Hacer el título más compacto en móviles */
+  .bg-gray-100.dark\:bg-gray-800 h3 {
+    font-size: 0.8rem;
   }
 
   /* Ensure loading containers take full height */
@@ -205,6 +280,16 @@ html, body {
 
   .flex {
     flex-direction: column; /* Cambia la dirección del flex en pantallas pequeñas */
+  }
+  
+  /* Excepción para los contenedores de etiquetas */
+  div[class*="flex-wrap"] {
+    flex-direction: row !important;
+  }
+  
+  /* Específicamente para las tarjetas de tareas */
+  .bg-white.dark\:bg-gray-700 .flex-grow > div {
+    flex-direction: row !important;
   }
 
   .h-screen {

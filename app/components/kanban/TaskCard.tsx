@@ -64,12 +64,21 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
             
             <div className="flex-grow">
               {task.labels && task.labels.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-2">
+                <div className="flex flex-wrap gap-1 mb-2" style={{ flexDirection: 'row' }}>
                   {task.labels.map((label) => (
                     <span
                       key={label.id}
-                      className="px-2 py-0.5 text-xs font-medium rounded-full"
-                      style={{ backgroundColor: label.color, color: getContrastColor(label.color) }}
+                      className="px-2 py-0.5 text-xs font-medium rounded-full inline-block"
+                      style={{ 
+                        backgroundColor: label.color, 
+                        color: getContrastColor(label.color),
+                        width: 'auto',
+                        maxWidth: 'fit-content',
+                        display: 'inline-block',
+                        flexGrow: 0,
+                        flexShrink: 0,
+                        flexBasis: 'auto'
+                      }}
                     >
                       {label.text}
                     </span>
