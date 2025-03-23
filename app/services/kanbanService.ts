@@ -1,6 +1,12 @@
 // Constantes
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
+// Helper function to determine if we should use local mode
+const isLocalMode = () => {
+  // Check if we're in development and if the environment has a specific flag for local mode
+  return process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_LOCAL_API === 'true';
+};
+
 // Interfaces
 interface Column {
   id: number;

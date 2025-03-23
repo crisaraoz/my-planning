@@ -38,7 +38,7 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
           {...provided.dragHandleProps}
           onClick={() => onTaskClick(task)}
           className={cn(
-            "bg-white dark:bg-gray-700 p-3 rounded-lg shadow mb-2 text-sm select-none cursor-pointer hover:shadow-md transition-shadow dark:text-gray-200 group w-full",
+            "bg-white dark:bg-gray-700 p-4 rounded-lg shadow mb-3 text-sm select-none cursor-pointer hover:shadow-md transition-all hover:translate-y-[-2px] dark:text-gray-200 group w-full",
             snapshot.isDragging ? "opacity-75 shadow-lg ring-2 ring-gray-200 dark:ring-gray-600" : "",
             task.completed && isCancelled ? "border-l-4 border-red-500" : 
             task.completed ? "border-l-4 border-blue-500" : ""
@@ -64,20 +64,14 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
             
             <div className="flex-grow">
               {task.labels && task.labels.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-2" style={{ flexDirection: 'row' }}>
+                <div className="flex flex-wrap gap-1.5 mb-2">
                   {task.labels.map((label) => (
                     <span
                       key={label.id}
                       className="px-2 py-0.5 text-xs font-medium rounded-full inline-block"
                       style={{ 
                         backgroundColor: label.color, 
-                        color: getContrastColor(label.color),
-                        width: 'auto',
-                        maxWidth: 'fit-content',
-                        display: 'inline-block',
-                        flexGrow: 0,
-                        flexShrink: 0,
-                        flexBasis: 'auto'
+                        color: getContrastColor(label.color)
                       }}
                     >
                       {label.text}
@@ -86,7 +80,7 @@ export function TaskCard({ task, index, onTaskClick, onToggleComplete, onDeleteT
                 </div>
               )}
               <h4 className={cn(
-                "font-medium mb-1",
+                "font-medium mb-2 text-sm",
                 task.completed && "line-through text-gray-500 dark:text-gray-400"
               )}>
                 {task.title}
