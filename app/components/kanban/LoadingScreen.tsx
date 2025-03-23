@@ -1,20 +1,22 @@
 "use client";
 
-import { Loader2, Zap } from "lucide-react";
+import { Mosaic } from "react-loading-indicators";
 
-interface LoadingScreenProps {
-  message?: string;
-}
+interface LoadingScreenProps {}
 
-const LoadingScreen = ({ message = "Loading your tasks..." }: LoadingScreenProps) => {
+const LoadingScreen = ({}: LoadingScreenProps) => {
   return (
-    <div className="flex flex-col justify-center items-center h-[calc(100vh-120px)] min-h-[400px] w-full px-4 py-10 bg-gray-50 dark:bg-gray-900">
-      <div className="relative">
-        <Loader2 className="w-12 h-12 animate-spin text-primary" />
-        <Zap className="w-5 h-5 text-yellow-400 absolute top-0 right-0 animate-pulse" />
-        <Zap className="w-5 h-5 text-blue-400 absolute bottom-0 left-0 animate-pulse" />
+    <div className="flex flex-col justify-center items-center w-full min-h-[500px] overflow-hidden">
+      <div className="flex flex-col items-center justify-center">
+        <div className="relative flex items-center justify-center transform scale-[2.0]">
+          <Mosaic 
+            color={["#FF4500", "#ADFF2F", "#1E90FF", "#8A2BE2"]} 
+            size="large" 
+            text="" 
+            textColor="" 
+          />
+        </div>
       </div>
-      <span className="mt-4 text-base font-medium text-primary">{message}</span>
     </div>
   );
 };
