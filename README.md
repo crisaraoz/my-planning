@@ -16,7 +16,38 @@ Este es un proyecto de gestión de tareas tipo Kanban, que permite a los usuario
 - **Framework**: React + Next
 - **Librerías**: Axios (para las solicitudes HTTP), React Router (para la navegación)
 - **Estilos**: Tailwind CSS 
-  
+
+## Capturas de Pantalla
+
+### Tablero Principal
+![Tablero Kanban](./docs/images/kanban-board.jpg)
+
+El tablero Kanban principal muestra todas las secciones con sus respectivas tareas. Cada tarea tiene etiquetas de color para identificar su tipo (Frontend, Backend, Diseño, etc.). Las tareas se pueden arrastrar y soltar entre columnas.
+
+### Añadir Nueva Tarea
+![Añadir Tarea](./docs/images/add-task.jpg)
+
+El modal para añadir nuevas tareas permite ingresar un título, descripción y seleccionar etiquetas para categorizar la tarea.
+
+### Confirmación de Eliminación
+![Confirmar Eliminación](./docs/images/delete-confirmation.jpg)
+
+Antes de eliminar una tarea, se muestra un diálogo de confirmación para prevenir eliminaciones accidentales.
+
+### Edición de Tareas
+![Editar Tarea](./docs/images/edit-task.jpg)
+
+La interfaz de edición permite modificar todos los detalles de una tarea existente, incluyendo su título, descripción, etiquetas y estado de completado.
+
+## Características Principales
+
+- **Gestión de Tareas**: Crear, editar, eliminar y mover tareas entre diferentes secciones
+- **Etiquetas Personalizables**: Organiza tus tareas con etiquetas de colores (Frontend, Backend, Diseño, etc.)
+- **Arrastrar y Soltar**: Interfaz intuitiva para mover tareas entre columnas
+- **Modo Oscuro/Claro**: Soporte para tema oscuro y claro
+- **Responsive**: Diseño adaptable para dispositivos móviles y de escritorio
+- **Datos Persistentes**: Todas las tareas y secciones se guardan en la base de datos
+
 ## Levantar el Proyecto Localmente
 
 ### Backend
@@ -81,8 +112,8 @@ Este es un proyecto de gestión de tareas tipo Kanban, que permite a los usuario
 ## Contribuciones
 Si deseas contribuir a este proyecto, por favor abre un issue o envía un pull request.
 
-5. **LIVE DEMO**:
-   https://my-planning-tawny.vercel.app/
+## LIVE DEMO
+https://my-planning-tawny.vercel.app/
 
 ## Licencia
 Este proyecto está bajo la Licencia MIT.
