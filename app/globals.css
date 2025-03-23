@@ -1,6 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Estilos críticos que deben aplicarse inmediatamente */
+html, body {
+  @media (max-width: 768px) {
+    .sidebar {
+      height: 5rem !important;
+      flex-direction: row !important;
+    }
+
+    .theme-toggle-container {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      height: 5rem !important;
+    }
+  }
+}
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -81,11 +99,108 @@
   }
 }
 
+/* Estilos globales para el botón de tema */
+.sidebar .flex-shrink-0 {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.sidebar .flex-shrink-0 button {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Clase específica para el contenedor del botón de tema */
+.theme-toggle-container {
+  margin-top: 1rem;
+}
+
+/* Estilos para desktop - sidebar completo */
+.mobile-nav {
+  display: flex;
+  width: 100%;
+}
+
+.mobile-nav-vertical {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Estilos para elementos en el sidebar */
+.mobile-nav-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-radius: 0.5rem;
+}
+
+/* Estilos para sidebar colapsado en desktop */
+.w-16 .mobile-nav-vertical {
+  align-items: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.w-16 .mobile-nav-link {
+  justify-content: center !important;
+  padding: 0.6rem 0;
+}
+
+.w-16 .theme-toggle-container {
+  margin-bottom: 1.5rem !important;
+}
+
 @media (max-width: 768px) {
   body {
     /* Ajustes generales para pantallas pequeñas */
     padding: 0;
     margin: 0;
+    min-height: 100vh; /* Ensure body takes up at least full viewport height */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+  }
+
+  /* Ensure loading containers take full height */
+  .min-h-screen {
+    min-height: 100vh !important;
+    height: 100vh;
+  }
+
+  /* Ocultar el botón de colapso en móviles */
+  .sidebar button[class*="-right-4"] {
+    display: none !important;
+  }
+
+  /* Contenedor específico para el sidebar en móviles */
+  .mobile-sidebar-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 5rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Centrar correctamente el botón de tema en móviles */
+  .sidebar .flex-shrink-0 {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  /* Asegurar que el botón de tema esté correctamente posicionado desde el inicio */
+  .theme-toggle-container {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    height: 5rem !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Asegurar que el botón de tema sea visible desde el inicio */
+  .sidebar .flex-shrink-0 button {
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 
   .flex {
@@ -102,23 +217,64 @@
 
   .sidebar {
     height: 5rem;
-    flex-direction: row; /* Cambia la dirección del flex a horizontal */
+    flex-direction: row !important; /* Cambia la dirección del flex a horizontal */
     width: 100%; /* Asegura que el sidebar ocupe el 100% del ancho */
     position: relative; /* Cambia la posición de la barra lateral */
     justify-content: space-around; /* Asegura que los elementos se distribuyan horizontalmente */
+    padding: 0 !important;
+    box-sizing: border-box !important;
   }
 
   .sidebar .p-4 {
-    padding: 0.5rem; /* Ajusta el padding para que se vea mejor en pantallas pequeñas */
+    padding: 0 !important; /* Elimina el padding que puede causar saltos */
+    height: 5rem;
+    display: flex;
+    align-items: center;
+    width: 100%;
   }
 
   .sidebar .flex {
-    flex-direction: row; /* Asegura que los elementos dentro del sidebar se alineen horizontalmente */
+    flex-direction: row !important; /* Asegura que los elementos dentro del sidebar se alineen horizontalmente */
   }
 
   .sidebar nav {
     display: flex; /* Asegura que el nav se muestre como un contenedor flex */
-    justify-content: space-around; /* Distribuye los íconos uniformemente */
+    justify-content: center !important; /* Centra los íconos horizontalmente */
     width: 100%; /* Asegura que el nav ocupe el 100% del ancho */
+    height: 5rem;
+    align-items: center;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 2rem !important; /* Espacio uniforme entre los íconos */
+    margin-top: 0 !important;
+  }
+
+  /* Asegurar que los iconos de navegación estén bien centrados */
+  .sidebar nav a {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0.75rem !important;
+  }
+  
+  /* Reglas específicas para la navegación móvil */
+  .mobile-nav-horizontal {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Resetear el espacio vertical entre elementos para móvil */
+  .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-y-reverse: 0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
   }
 }

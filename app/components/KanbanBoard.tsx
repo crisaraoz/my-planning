@@ -24,6 +24,7 @@ import {
 } from "../services/kanbanService";
 import { toast } from "sonner";
 import Chat from "../components/Chat";
+import LoadingScreen from "./kanban/LoadingScreen";
 
 const KanbanBoard = () => {
   const [board, setBoard] = useState<Board>({ columns: [] });
@@ -670,27 +671,21 @@ const KanbanBoard = () => {
   };
 
   return (
-    <>
-      {loading ? (
-        <div className="flex flex-col justify-center items-center h-96">
+    <div className="flex flex-col h-full">
+      {actionInProgress && (
+        <div className="fixed top-0 left-0 right-0 bg-primary/90 text-white py-2 px-4 flex items-center justify-center z-50">
           <div className="relative">
-            <Loader2 className="w-12 h-12 animate-spin text-primary" />
-            <Zap className="w-5 h-5 text-yellow-400 absolute top-0 right-0 animate-pulse" />
-            <Zap className="w-5 h-5 text-blue-400 absolute bottom-0 left-0 animate-pulse" />
+            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            <Zap className="w-3 h-3 text-yellow-300 absolute -top-1 -right-1 animate-bounce" />
           </div>
-          <span className="mt-4 text-base font-medium text-primary">Loading your tasks...</span>
+          <span>{actionInProgress}</span>
         </div>
-      ) : (
-        <>
-          {actionInProgress && (
-            <div className="fixed top-0 left-0 right-0 bg-primary/90 text-white py-2 px-4 flex items-center justify-center z-50">
-              <div className="relative">
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                <Zap className="w-3 h-3 text-yellow-300 absolute -top-1 -right-1 animate-bounce" />
-              </div>
-              <span>{actionInProgress}</span>
-            </div>
-          )}
+      )}
+      
+      <div className="flex-grow overflow-hidden">
+        {loading ? (
+          <LoadingScreen />
+        ) : (
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="all-columns" direction="horizontal" type="column">
               {(provided, snapshot) => (
@@ -786,8 +781,10 @@ const KanbanBoard = () => {
               isSaving={isSaving}
             />
           </DragDropContext>
-        </>
-      )}
+        )}
+      </div>
+
+      {!loading && <Chat />}
 
       {showDeleteConfirmation && (
         <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
@@ -877,9 +874,7 @@ const KanbanBoard = () => {
           </DialogContent>
         </Dialog>
       )}
-
-      <Chat />
-    </>
+    </div>
   );
 };
 
