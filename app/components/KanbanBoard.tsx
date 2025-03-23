@@ -840,7 +840,8 @@ const KanbanBoard = () => {
             <Droppable droppableId="all-columns" direction="horizontal" type="column">
               {(provided, snapshot) => (
                 <div 
-                  className="flex gap-6 h-full px-4 pb-4 bg-gray-50 dark:bg-gray-900 overflow-x-auto"
+                  className="flex gap-6 h-full px-8 sm:px-6 md:px-4 pb-4 bg-gray-50 dark:bg-gray-900 overflow-x-auto md:justify-start justify-center scrollbar-thin"
+                  style={{ scrollPaddingLeft: '1rem' }}
                   {...provided.droppableProps}
                   ref={provided.innerRef}
                 >
