@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import styles from "./styles/chat.module.css";
 import { MessageSquareIcon } from "lucide-react";
 import { sendChatRequest } from "../services/chatService";
-import { Loader2 } from "lucide-react";
+import { Mosaic } from "react-loading-indicators";
 import { toast } from "sonner";
 
 interface Message {
@@ -70,7 +70,7 @@ const Chat = () => {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {/* Contenedor principal del chat */}
-      <div className={`flex flex-col transition-all duration-300 ${isOpen ? "h-[400px] w-[300px]" : "h-12 w-40"}`}>
+      <div className={`flex flex-col transition-all duration-300 ${isOpen ? "h-[400px] w-[350px]" : "h-12 w-40"}`}>
         {/* Cabecera del chat */}
         <div
           className={`${styles.chatButton} bg-card text-card-foreground rounded-lg p-3 shadow-lg flex items-center justify-between cursor-pointer`}
@@ -111,7 +111,12 @@ const Chat = () => {
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="bg-gray-200 dark:bg-gray-700 rounded-lg p-3">
-                    <Loader2 className="w-5 h-5 animate-spin text-gray-500 dark:text-gray-400" />
+                    <Mosaic 
+                      color={["#6c2dcd", "#5433d6", "#3c59df", "#2481e8"]} 
+                      size="small" 
+                      text="" 
+                      textColor="" 
+                    />
                   </div>
                 </div>
               )}
@@ -132,7 +137,7 @@ const Chat = () => {
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 disabled:opacity-50"
+                  className="px-3 py-2 bg-primary text-white rounded-md hover:bg-primary/90 disabled:opacity-50 whitespace-nowrap"
                 >
                   Send
                 </button>

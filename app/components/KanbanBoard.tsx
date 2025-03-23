@@ -4,7 +4,8 @@
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useState, useEffect } from "react";
 import { Board, Column, Label, Task } from "../types/kanban";
-import { Plus, Loader2, Zap } from "lucide-react";
+import { Plus, Zap } from "lucide-react";
+import { Mosaic } from "react-loading-indicators";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Column as ColumnComponent } from "./kanban/Column";
@@ -820,10 +821,14 @@ const KanbanBoard = () => {
       {actionInProgress && (
         <div className="fixed top-0 left-0 right-0 bg-primary/90 text-white py-2 px-4 flex items-center justify-center z-50">
           <div className="relative">
-            <Loader2 className="w-5 h-5 animate-spin mr-2" />
-            <Zap className="w-3 h-3 text-yellow-300 absolute -top-1 -right-1 animate-bounce" />
+            <Mosaic 
+              color={["#6c2dcd", "#5433d6", "#3c59df", "#2481e8"]} 
+              size="small" 
+              text="" 
+              textColor="" 
+            />
           </div>
-          <span>{actionInProgress}</span>
+          <span className="ml-2">{actionInProgress}</span>
         </div>
       )}
       
@@ -835,7 +840,9 @@ const KanbanBoard = () => {
       
       <div className="flex-grow overflow-hidden">
         {loading ? (
-          <LoadingScreen />
+          <div className="flex gap-6 h-full px-8 sm:px-6 md:px-4 pb-4 bg-gray-50 dark:bg-gray-900 overflow-x-auto md:justify-start justify-center">
+            <LoadingScreen />
+          </div>
         ) : (
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="all-columns" direction="horizontal" type="column">
@@ -972,10 +979,14 @@ const KanbanBoard = () => {
                 {isDeleting ? (
                   <>
                     <div className="relative">
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      <Zap className="w-2 h-2 text-red-300 absolute -top-1 -right-1 animate-bounce" />
+                      <Mosaic 
+                        color={["#6c2dcd", "#5433d6", "#3c59df", "#2481e8"]} 
+                        size="small" 
+                        text="" 
+                        textColor="" 
+                      />
                     </div>
-                    Deleting...
+                    <span className="ml-2">Deleting...</span>
                   </>
                 ) : 'Delete'}
               </Button>
@@ -1015,10 +1026,14 @@ const KanbanBoard = () => {
                 {isDeletingSection ? (
                   <>
                     <div className="relative">
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      <Zap className="w-2 h-2 text-red-300 absolute -top-1 -right-1 animate-bounce" />
+                      <Mosaic 
+                        color={["#6c2dcd", "#5433d6", "#3c59df", "#2481e8"]} 
+                        size="small" 
+                        text="" 
+                        textColor="" 
+                      />
                     </div>
-                    Deleting...
+                    <span className="ml-2">Deleting...</span>
                   </>
                 ) : 'Delete'}
               </Button>

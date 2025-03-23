@@ -16,6 +16,10 @@ const Sidebar = () => {
     const handleResize = () => {
       if (typeof window !== "undefined") {
         setIsMobile(window.innerWidth < 768);
+        // Auto-collapse sidebar on mobile
+        if (window.innerWidth < 768) {
+          setIsCollapsed(true);
+        }
       }
     };
 
@@ -35,10 +39,15 @@ const Sidebar = () => {
   return (
     <div
       className={cn(
-        "bg-gray-900 text-white h-screen relative transition-all duration-300 dark:bg-gray-950 sidebar",
-        isCollapsed ? "w-16" : "w-52",
-        "flex flex-col"
+        "bg-gray-900 text-white relative transition-all duration-300 dark:bg-gray-950 sidebar flex-shrink-0",
+        isMobile ? "w-16" : (isCollapsed ? "w-16" : "w-52"),
+        "flex flex-col",
+        isMobile ? "h-full" : "h-screen"
       )}
+      style={!isMobile ? { 
+        width: isCollapsed ? '4rem' : '13rem', 
+        minWidth: isCollapsed ? '4rem' : '13rem' 
+      } : undefined}
     >
       <Button
         variant="ghost"
@@ -76,9 +85,9 @@ const Sidebar = () => {
               onClick={item.disabled ? (e) => e.preventDefault() : undefined}
             >
               <item.icon className={cn(
-                isCollapsed ? "w-6 h-6" : "w-5 h-5"
+                isCollapsed || isMobile ? "w-6 h-6" : "w-5 h-5"
               )} />
-              {!isCollapsed && (
+              {!isCollapsed && !isMobile && (
                 <span className="ml-3 hidden md:inline font-medium">{item.label}</span>
               )}
             </Link>
