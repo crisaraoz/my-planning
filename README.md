@@ -1,120 +1,120 @@
-# Mi Proyecto de Kanban
+# Kanban Project
 
-## Descripción
-Este es un proyecto de gestión de tareas tipo Kanban, que permite a los usuarios crear, editar y organizar tareas en diferentes columnas.
+## Description
+This is a Kanban-style task management project that allows users to create, edit, and organize tasks in different columns.
 
-## Tecnologías Utilizadas
+## Technologies Used
 
 ### Backend
 - **Framework**: FastAPI
-- **Base de Datos**: PostgreSQL (Neon)
+- **Database**: PostgreSQL (Neon)
 - **ORM**: SQLAlchemy
-- **Autenticación**: JWT (JSON Web Tokens)
-- **Entorno**: Python 3.x
+- **Authentication**: JWT (JSON Web Tokens)
+- **Environment**: Python 3.x
 
 ### Frontend
 - **Framework**: React + Next
-- **Librerías**: Axios (para las solicitudes HTTP), React Router (para la navegación)
-- **Estilos**: Tailwind CSS 
+- **Libraries**: Axios (for HTTP requests), React Router (for navigation)
+- **Styles**: Tailwind CSS 
 
-## Capturas de Pantalla
+## Screenshots
 
-### Tablero Principal
-![Tablero Kanban](./docs/images/kanban-board.jpg)
+### Main Board
+![Kanban Board](./docs/images/kanban-board.jpg)
 
-El tablero Kanban principal muestra todas las secciones con sus respectivas tareas. Cada tarea tiene etiquetas de color para identificar su tipo (Frontend, Backend, Diseño, etc.). Las tareas se pueden arrastrar y soltar entre columnas.
+The main Kanban board displays all sections with their respective tasks. Each task has color-coded labels to identify its type (Frontend, Backend, Design, etc.). Tasks can be dragged and dropped between columns.
 
-### Añadir Nueva Tarea
-![Añadir Tarea](./docs/images/add-task.jpg)
+### Add New Task
+![Add Task](./docs/images/add-task.jpg)
 
-El modal para añadir nuevas tareas permite ingresar un título, descripción y seleccionar etiquetas para categorizar la tarea.
+The modal for adding new tasks allows you to enter a title, description, and select labels to categorize the task.
 
-### Confirmación de Eliminación
-![Confirmar Eliminación](./docs/images/delete-confirmation.jpg)
+### Delete Confirmation
+![Delete Confirmation](./docs/images/delete-confirmation.jpg)
 
-Antes de eliminar una tarea, se muestra un diálogo de confirmación para prevenir eliminaciones accidentales.
+Before deleting a task, a confirmation dialog is displayed to prevent accidental deletions.
 
-### Edición de Tareas
-![Editar Tarea](./docs/images/edit-task.jpg)
+### Task Editing
+![Edit Task](./docs/images/edit-task.jpg)
 
-La interfaz de edición permite modificar todos los detalles de una tarea existente, incluyendo su título, descripción, etiquetas y estado de completado.
+The editing interface allows you to modify all details of an existing task, including its title, description, labels, and completion status.
 
-## Características Principales
+## Main Features
 
-- **Gestión de Tareas**: Crear, editar, eliminar y mover tareas entre diferentes secciones
-- **Etiquetas Personalizables**: Organiza tus tareas con etiquetas de colores (Frontend, Backend, Diseño, etc.)
-- **Arrastrar y Soltar**: Interfaz intuitiva para mover tareas entre columnas
-- **Modo Oscuro/Claro**: Soporte para tema oscuro y claro
-- **Responsive**: Diseño adaptable para dispositivos móviles y de escritorio
-- **Datos Persistentes**: Todas las tareas y secciones se guardan en la base de datos
+- **Task Management**: Create, edit, delete, and move tasks between different sections
+- **Custom Labels**: Organize your tasks with color labels (Frontend, Backend, Design, etc.)
+- **Drag and Drop**: Intuitive interface for moving tasks between columns
+- **Dark/Light Mode**: Support for dark and light themes
+- **Responsive**: Adaptive design for mobile and desktop devices
+- **Persistent Data**: All tasks and sections are saved in the database
 
-## Levantar el Proyecto Localmente
+## Setting Up the Project Locally
 
 ### Backend
 
-1. **Clona el repositorio**:
+1. **Clone the repository**:
    ```bash
-   git clone https://github.com/tu_usuario/tu_repositorio.git
-   cd tu_repositorio/backend
+   git clone https://github.com/your_username/your_repository.git
+   cd your_repository/backend
    ```
 
-2. **Crea un entorno virtual** (opcional pero recomendado):
+2. **Create a virtual environment** (optional but recommended):
    ```bash
    python -m venv venv
    ```
 
-3. **Activa el entorno virtual**:
-   - En Windows:
+3. **Activate the virtual environment**:
+   - On Windows:
      ```bash
      venv\Scripts\activate
      ```
-   - En macOS/Linux:
+   - On macOS/Linux:
      ```bash
      source venv/bin/activate
      ```
 
-4. **Instala las dependencias**:
+4. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-5. **Configura las variables de entorno**:
-   Asegúrate de tener un archivo `.env` en la carpeta `backend` con la siguiente configuración:
+5. **Configure environment variables**:
+   Make sure you have a `.env` file in the `backend` folder with the following configuration:
    ```plaintext
-   DATABASE_URL=[LINK DE CONEXIÓN A LA BASE DE DATOS QUE UTILIZES/CREASTE]
+   DATABASE_URL=[CONNECTION LINK TO YOUR DATABASE]
    ```
 
-6. **Levanta el servidor**:
+6. **Start the server**:
    ```bash
    uvicorn app.main:app --reload
    ```
 
 ### Frontend
 
-1. **Navega a la carpeta del frontend**:
+1. **Navigate to the frontend folder**:
    ```bash
    cd ../frontend
    ```
 
-2. **Instala las dependencias**:
+2. **Install dependencies**:
    ```bash
    npm install
    ```
 
-3. **Levanta el servidor**:
+3. **Start the server**:
    ```bash
    npm start
    ```
 
-4. **Accede a la aplicación**:
-   Abre tu navegador y ve a `http://localhost:3000` para ver la aplicación en funcionamiento.
+4. **Access the application**:
+   Open your browser and go to `http://localhost:3000` to see the application running.
 
-## Contribuciones
-Si deseas contribuir a este proyecto, por favor abre un issue o envía un pull request.
+## Contributions
+If you wish to contribute to this project, please open an issue or submit a pull request.
 
 ## LIVE DEMO
 https://my-planning-tawny.vercel.app/
 
-## Licencia
-Este proyecto está bajo la Licencia MIT.
+## License
+This project is under the MIT License.
 
