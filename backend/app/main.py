@@ -4,6 +4,7 @@ from .core.config import get_settings
 from .api.endpoints import kanban
 from .models.base import Base
 from .database import engine
+from app.api.chat.router import router as chat_router
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -35,4 +36,6 @@ app.include_router(
     kanban.router,
     prefix=settings.API_V1_STR,
     tags=["kanban"]
-) 
+)
+
+app.include_router(chat_router, prefix="/api/v1", tags=["chat"]) 
