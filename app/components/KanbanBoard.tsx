@@ -24,10 +24,12 @@ import {
 } from "../services/kanbanService";
 import { toast } from "sonner";
 import Chat from "../components/Chat";
+import LoadingScreen from "./kanban/LoadingScreen";
 
 const KanbanBoard = () => {
   const [board, setBoard] = useState<Board>({ columns: [] });
   const [loading, setLoading] = useState(true);
+  const [isDevMode] = useState(process.env.NODE_ENV === 'development');
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newSectionTitle, setNewSectionTitle] = useState("");
@@ -105,15 +107,93 @@ const KanbanBoard = () => {
       // Actualizamos el estado con los datos obtenidos
       setBoard({ columns: formattedColumns });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al cargar datos:", error);
-      toast.error("Error loading data");
+      
+      // Special handling for CORS or network issues
+      if (error.message && (error.message.includes('CORS') || error.message.includes('ERR_FAILED'))) {
+        toast.error('Cannot connect to the backend. Using local demo mode.');
+        
+        // In development, use demo data
+        if (process.env.NODE_ENV === 'development') {
+          // Create demo board with sample data
+          const demoBoard = createDemoBoard();
+          setBoard(demoBoard);
+          toast.info('Using demo data for development');
+          return true;
+        }
+      } else {
+        toast.error("Error loading data");
+      }
+      
       return false;
     } finally {
       if (showLoading) {
         setLoading(false);
       }
     }
+  };
+
+  // Helper function to create demo data for development
+  const createDemoBoard = (): Board => {
+    return {
+      columns: [
+        {
+          id: 'section-demo-1',
+          title: 'To Do (Demo)',
+          tasks: [
+            {
+              id: 'task-demo-1',
+              title: 'Sample Task 1',
+              description: 'This is a demo task',
+              completed: false,
+              labels: [
+                { id: 'label-demo-1', text: 'Frontend', color: '#03A9F4' }
+              ]
+            },
+            {
+              id: 'task-demo-2',
+              title: 'Sample Task 2',
+              description: 'Another demo task',
+              completed: false,
+              labels: [
+                { id: 'label-demo-2', text: 'Backend', color: '#FF9800' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'section-demo-2',
+          title: 'In Progress (Demo)',
+          tasks: [
+            {
+              id: 'task-demo-3',
+              title: 'Demo Task In Progress',
+              description: 'This task is in progress',
+              completed: false,
+              labels: [
+                { id: 'label-demo-3', text: 'Feature', color: '#4CAF50' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'section-demo-3',
+          title: 'Done (Demo)',
+          tasks: [
+            {
+              id: 'task-demo-4',
+              title: 'Completed Demo Task',
+              description: 'This task is complete',
+              completed: true,
+              labels: [
+                { id: 'label-demo-4', text: 'Bug', color: '#F44336' }
+              ]
+            }
+          ]
+        }
+      ]
+    };
   };
 
   // Cargar datos iniciales desde el backend
@@ -253,55 +333,92 @@ const KanbanBoard = () => {
         return;
       }
       
-      // Llamar al servicio para crear una nueva tarea en el backend
-      const createdTask = await createTask({
-        title: newTaskTitle,
-        description: newTaskDescription,
-        column_id: numericColumnId,
-        order: board.columns.find(col => col.id === columnId)?.tasks.length || 0
-      });
-      
-      // Si hay etiquetas, asociarlas a la tarea creada
-      if (labels && labels.length > 0) {
-        // Transformar las etiquetas al formato esperado por el backend
-        const labelPayload = labels.map(label => ({
-          text: label.text,
-          color: label.color
-        }));
+      try {
+        // Llamar al servicio para crear una nueva tarea en el backend
+        const createdTask = await createTask({
+          title: newTaskTitle,
+          description: newTaskDescription,
+          column_id: numericColumnId,
+          order: board.columns.find(col => col.id === columnId)?.tasks.length || 0
+        });
+        
+        // Si hay etiquetas, asociarlas a la tarea creada
+        if (labels && labels.length > 0) {
+          // Transformar las etiquetas al formato esperado por el backend
+          const labelPayload = labels.map(label => ({
+            text: label.text,
+            color: label.color
+          }));
 
-        await addLabelsToTask(createdTask.id, labelPayload);
+          await addLabelsToTask(createdTask.id, labelPayload);
+        }
+        
+        // Crear el objeto de tarea para actualizar el estado local
+        const newTask: Task = {
+          id: `task-${createdTask.id}`,
+          title: newTaskTitle,
+          description: newTaskDescription,
+          labels: labels || [],
+          completed: false
+        };
+
+        // Actualizar el estado local con la nueva tarea
+        setBoard({
+          columns: board.columns.map((col) => {
+            if (col.id === columnId) {
+              return {
+                ...col,
+                tasks: [...col.tasks, newTask],
+              };
+            }
+            return col;
+          }),
+        });
+
+        toast.success('Task created successfully');
+      } catch (error: any) {
+        console.error('Error al crear nueva tarea:', error);
+        
+        // Check for CORS error
+        if (error.message && error.message.includes('CORS')) {
+          toast.error('CORS error: Cannot connect to the backend. Please make sure your backend server is running and CORS is properly configured.');
+        } else if (error.message && error.message.includes('ERR_FAILED')) {
+          toast.error('Network error: Cannot connect to the backend. Please check your connection or the backend server status.');
+        } else {
+          toast.error('Error creating task: ' + (error.message || 'Unknown error'));
+        }
+        
+        // For development only: Create a temporary local task to allow testing UI
+        if (process.env.NODE_ENV === 'development') {
+          const tempId = `temp-task-${Date.now()}`;
+          const newTempTask: Task = {
+            id: tempId,
+            title: newTaskTitle + ' (Local Only)',
+            description: newTaskDescription,
+            labels: labels || [],
+            completed: false
+          };
+          
+          // Add temporary task to UI
+          setBoard({
+            columns: board.columns.map((col) => {
+              if (col.id === columnId) {
+                return {
+                  ...col,
+                  tasks: [...col.tasks, newTempTask],
+                };
+              }
+              return col;
+            }),
+          });
+          
+          toast.warning('Created temporary local task (not saved to backend)');
+        }
       }
-      
-      // Crear el objeto de tarea para actualizar el estado local
-      const newTask: Task = {
-        id: `task-${createdTask.id}`,
-        title: newTaskTitle,
-        description: newTaskDescription,
-        labels: labels || [],
-        completed: false
-      };
-
-      // Actualizar el estado local con la nueva tarea
-      setBoard({
-        columns: board.columns.map((col) => {
-          if (col.id === columnId) {
-            return {
-              ...col,
-              tasks: [...col.tasks, newTask],
-            };
-          }
-          return col;
-        }),
-      });
-
-      toast.success('Task created successfully');
       
       // Limpiar los campos del formulario
       setNewTaskTitle("");
       setNewTaskDescription("");
-    } catch (error) {
-      console.error('Error al crear nueva tarea:', error);
-      toast.error('Error creating task');
     } finally {
       setIsSaving(false);
       setActionInProgress(null);
@@ -315,28 +432,56 @@ const KanbanBoard = () => {
       setActionInProgress('Adding new section...');
       
       // Llamar al servicio para crear una nueva columna en el backend
-      const createdColumn = await createColumn({
-        title: newSectionTitle,
-        order: board.columns.length
-      });
-      
-      // Crear el objeto de sección para actualizar el estado local
-      const newSection: Column = {
-        id: `section-${createdColumn.id}`,
-        title: newSectionTitle,
-        tasks: [],
-      };
+      try {
+        const createdColumn = await createColumn({
+          title: newSectionTitle,
+          order: board.columns.length
+        });
+        
+        // Crear el objeto de sección para actualizar el estado local
+        const newSection: Column = {
+          id: `section-${createdColumn.id}`,
+          title: newSectionTitle,
+          tasks: [],
+        };
 
-      // Actualizar el estado local
-      setBoard({
-        columns: [...board.columns, newSection],
-      });
+        // Actualizar el estado local
+        setBoard({
+          columns: [...board.columns, newSection],
+        });
 
-      setNewSectionTitle("");
-      toast.success('Section created successfully');
-    } catch (error) {
-      console.error('Error al crear nueva sección:', error);
-      toast.error('Error creating section');
+        setNewSectionTitle("");
+        toast.success('Section created successfully');
+      } catch (error: any) {
+        console.error('Error al crear nueva sección:', error);
+        
+        // Check for CORS error
+        if (error.message && error.message.includes('CORS')) {
+          toast.error('CORS error: Cannot connect to the backend. Please make sure your backend server is running and CORS is properly configured.');
+        } else if (error.message && error.message.includes('ERR_FAILED')) {
+          toast.error('Network error: Cannot connect to the backend. Please check your connection or the backend server status.');
+        } else {
+          toast.error('Error creating section: ' + (error.message || 'Unknown error'));
+        }
+        
+        // For development only: Create a temporary local section to allow testing UI
+        if (process.env.NODE_ENV === 'development') {
+          const tempId = `temp-section-${Date.now()}`;
+          const newTempSection: Column = {
+            id: tempId,
+            title: newSectionTitle + ' (Local Only)',
+            tasks: [],
+          };
+          
+          // Add temporary section to UI
+          setBoard({
+            columns: [...board.columns, newTempSection],
+          });
+          
+          setNewSectionTitle("");
+          toast.warning('Created temporary local section (not saved to backend)');
+        }
+      }
     } finally {
       setActionInProgress(null);
     }
@@ -670,32 +815,33 @@ const KanbanBoard = () => {
   };
 
   return (
-    <>
-      {loading ? (
-        <div className="flex flex-col justify-center items-center h-96">
+    <div className="flex flex-col h-full">
+      {actionInProgress && (
+        <div className="fixed top-0 left-0 right-0 bg-primary/90 text-white py-2 px-4 flex items-center justify-center z-50">
           <div className="relative">
-            <Loader2 className="w-12 h-12 animate-spin text-primary" />
-            <Zap className="w-5 h-5 text-yellow-400 absolute top-0 right-0 animate-pulse" />
-            <Zap className="w-5 h-5 text-blue-400 absolute bottom-0 left-0 animate-pulse" />
+            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            <Zap className="w-3 h-3 text-yellow-300 absolute -top-1 -right-1 animate-bounce" />
           </div>
-          <span className="mt-4 text-base font-medium text-primary">Loading your tasks...</span>
+          <span>{actionInProgress}</span>
         </div>
-      ) : (
-        <>
-          {actionInProgress && (
-            <div className="fixed top-0 left-0 right-0 bg-primary/90 text-white py-2 px-4 flex items-center justify-center z-50">
-              <div className="relative">
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                <Zap className="w-3 h-3 text-yellow-300 absolute -top-1 -right-1 animate-bounce" />
-              </div>
-              <span>{actionInProgress}</span>
-            </div>
-          )}
+      )}
+      
+      {isDevMode && (
+        <div className="fixed top-0 right-0 bg-amber-500 text-white text-xs py-1 px-2 m-2 rounded-md z-50">
+          Dev Mode
+        </div>
+      )}
+      
+      <div className="flex-grow overflow-hidden">
+        {loading ? (
+          <LoadingScreen />
+        ) : (
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="all-columns" direction="horizontal" type="column">
               {(provided, snapshot) => (
                 <div 
-                  className="flex gap-4 h-full px-4 pb-4 bg-gray-50 dark:bg-gray-900 overflow-x-auto"
+                  className="flex gap-6 h-full px-8 sm:px-6 md:px-4 pb-4 bg-gray-50 dark:bg-gray-900 overflow-x-auto md:justify-start justify-center scrollbar-thin"
+                  style={{ scrollPaddingLeft: '1rem' }}
                   {...provided.droppableProps}
                   ref={provided.innerRef}
                 >
@@ -706,7 +852,7 @@ const KanbanBoard = () => {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           className={cn(
-                            "w-72 flex-shrink-0",
+                            "w-80 flex-shrink-0",
                             snapshot.isDragging ? "opacity-75" : ""
                           )}
                         >
@@ -739,26 +885,26 @@ const KanbanBoard = () => {
                   ))}
                   {provided.placeholder}
 
-                  <div className="w-72 flex-shrink-0">
-                    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-                      <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">Add New Section</h3>
+                  <div className="w-80 flex-shrink-0">
+                    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-3 text-sm">Add New Section</h3>
                       <div className="flex gap-2">
                         <Input
                           placeholder="Section title"
                           value={newSectionTitle}
                           onChange={(e) => setNewSectionTitle(e.target.value)}
-                          className="text-sm h-7 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                          className="text-sm h-8 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
                         />
                         <Button 
                           onClick={addNewSection} 
-                          className={`h-7 w-7 p-0 ${
+                          className={`h-8 w-8 p-0 ${
                             newSectionTitle.length < 3 
                               ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-50' 
                               : 'dark:bg-gray-700 hover:bg-primary/90'
                           }`}
                           disabled={newSectionTitle.length < 3}
                         >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="w-4 h-4" />
                         </Button>
                       </div>
                       {newSectionTitle.length > 0 && newSectionTitle.length < 3 && (
@@ -786,16 +932,18 @@ const KanbanBoard = () => {
               isSaving={isSaving}
             />
           </DragDropContext>
-        </>
-      )}
+        )}
+      </div>
+
+      {!loading && <Chat />}
 
       {showDeleteConfirmation && (
         <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
-          <DialogContent className="sm:max-w-[400px] dark:bg-gray-800 dark:border-gray-700">
+          <DialogContent className="sm:max-w-[400px] dark:bg-gray-800 dark:border-gray-700" aria-describedby="delete-task-description">
             <DialogHeader>
               <DialogTitle className="dark:text-gray-200">Confirm Deletion</DialogTitle>
             </DialogHeader>
-            <div className="py-4">
+            <div id="delete-task-description" className="py-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Are you sure you want to delete this task? This action cannot be undone.
               </p>
@@ -837,11 +985,11 @@ const KanbanBoard = () => {
 
       {showDeleteSectionConfirmation && (
         <Dialog open={showDeleteSectionConfirmation} onOpenChange={setShowDeleteSectionConfirmation}>
-          <DialogContent className="sm:max-w-[400px] dark:bg-gray-800 dark:border-gray-700">
+          <DialogContent className="sm:max-w-[400px] dark:bg-gray-800 dark:border-gray-700" aria-describedby="delete-section-description">
             <DialogHeader>
               <DialogTitle className="dark:text-gray-200">Confirm Section Deletion</DialogTitle>
             </DialogHeader>
-            <div className="py-4">
+            <div id="delete-section-description" className="py-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Are you sure you want to delete this section? All tasks in this section will also be deleted. This action cannot be undone.
               </p>
@@ -877,9 +1025,7 @@ const KanbanBoard = () => {
           </DialogContent>
         </Dialog>
       )}
-
-      <Chat />
-    </>
+    </div>
   );
 };
 

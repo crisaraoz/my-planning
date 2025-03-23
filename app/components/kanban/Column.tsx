@@ -100,7 +100,7 @@ export function Column({
   };
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg w-full flex-shrink-0">
+    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg w-full flex-shrink-0 shadow-sm border border-gray-200 dark:border-gray-700">
       <div className="flex justify-between items-center mb-3">
         {editingSectionId === column.id ? (
           <div className="flex gap-1 flex-1">
@@ -130,7 +130,7 @@ export function Column({
           <>
             <div className="flex items-center gap-2" {...dragHandleProps}>
               <GripVertical className="h-4 w-4 text-gray-500 dark:text-gray-400 cursor-grab" />
-              <h3 className="font-semibold text-gray-700 dark:text-gray-300 text-sm">{column.title}</h3>
+              <h3 className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{column.title}</h3>
             </div>
             <div className="flex items-center gap-2">
               <span className="bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded text-xs dark:text-gray-300">
@@ -192,18 +192,18 @@ export function Column({
         <DialogTrigger asChild>
           <Button
             variant="outline"
-            className="w-full mt-2 text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 h-7 text-xs dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600"
+            className="w-full mt-3 text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 h-8 text-xs dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 hover:bg-gray-200 transition-colors"
             onClick={() => setIsDialogOpen(true)}
           >
             <Plus className="w-3 h-3 mr-1" />
             Add Task
           </Button>
         </DialogTrigger>
-        <DialogContent className="dark:bg-gray-800 dark:border-gray-700">
+        <DialogContent className="dark:bg-gray-800 dark:border-gray-700" aria-describedby="add-task-description">
           <DialogHeader>
             <DialogTitle className="dark:text-gray-200">Add New Task</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 pt-3">
+          <div id="add-task-description" className="space-y-3 pt-3">
             <Input
               placeholder="Task title"
               value={newTaskTitle}

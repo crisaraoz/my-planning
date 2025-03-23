@@ -36,55 +36,50 @@ const Sidebar = () => {
     <div
       className={cn(
         "bg-gray-900 text-white h-screen relative transition-all duration-300 dark:bg-gray-950 sidebar",
-        isCollapsed ? "w-16" : "w-64",
+        isCollapsed ? "w-16" : "w-52",
         "flex flex-col"
       )}
     >
-      {!isMobile && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`absolute -right-4 top-16 bg-gray-900 text-white rounded-full hover:bg-gray-800 z-50 dark:bg-gray-950 dark:hover:bg-gray-800 md:block flex items-center justify-center ${isCollapsed ? "hidden" : "block"}`}
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        >
-          <div className="flex items-center justify-center h-9 w-9">
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </div>
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className={`absolute -right-4 top-16 bg-gray-900 text-white rounded-full hover:bg-gray-800 z-50 dark:bg-gray-950 dark:hover:bg-gray-800 md:flex hidden items-center justify-center ${isCollapsed ? "hidden" : "block"}`}
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
+        <div className="flex items-center justify-center h-9 w-9">
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </div>
+      </Button>
 
-      <div className="p-4 flex flex-col items-center">
-        <div className={cn(
-          "flex items-center gap-2 mb-8",
-          isMobile ? "justify-start w-12" : ""
-        )}>
-          <div className={cn(
-            "flex-shrink-0 w-8 h-8 flex items-center",
-            isMobile ? "justify-start mt-8" : "justify-center"
-          )}>
+      <div className="p-4 flex flex-col items-center mobile-sidebar-container">
+        <div className="flex items-center w-full justify-center theme-toggle-container mb-6">
+          <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
             <ThemeToggle />
           </div>
           {/* {!isCollapsed && !isMobile && <span className="text-xl font-bold">Planning</span>} */}
         </div>
         
-        <nav className="space-y-2">
+        <nav className={cn("space-y-2 mobile-nav", isMobile ? "mobile-nav-horizontal" : "mobile-nav-vertical")}>
           {menuItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center justify-center text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors p-3",
+                "flex items-center text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors py-2 px-3 mobile-nav-link",
+                isMobile ? "justify-center" : (isCollapsed ? "justify-center" : "justify-start"),
                 item.disabled ? "opacity-50 cursor-not-allowed" : ""
               )}
               onClick={item.disabled ? (e) => e.preventDefault() : undefined}
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className={cn(
+                isCollapsed ? "w-6 h-6" : "w-5 h-5"
+              )} />
               {!isCollapsed && (
-                <span className="ml-2 hidden md:inline">{item.label}</span>
+                <span className="ml-3 hidden md:inline font-medium">{item.label}</span>
               )}
             </Link>
           ))}
