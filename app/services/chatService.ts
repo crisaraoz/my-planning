@@ -1,7 +1,6 @@
 // Constant
 const QWEN_API_KEY = process.env.NEXT_PUBLIC_QWEN_API_KEY;
-const QWEN_API_URL = 'http://localhost:8010/compatible-mode/v1/chat/completions';
-
+const QWEN_API_URL = process.env.NEXT_PUBLIC_QWEN_API_URL + '/compatible-mode/v1/chat/completions';
 // Types
 interface Message {
   role: 'system' | 'user' | 'assistant';
