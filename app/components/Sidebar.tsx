@@ -64,7 +64,7 @@ const Sidebar = () => {
 
   // Asegurar que el sidebar se renderiza correctamente desde el inicio
   const sidebarClass = cn(
-    "bg-gray-900 text-white transition-all duration-300 dark:bg-gray-950 sidebar flex-shrink-0",
+    "bg-gray-900 text-white transition-all duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] dark:bg-gray-950 sidebar flex-shrink-0",
     isMobile ? "w-full fixed top-0 left-0 z-50" : (isCollapsed ? "w-16" : "w-52"),
     "flex",
     isMobile ? "flex-row h-20" : "flex-col h-screen"
@@ -72,7 +72,8 @@ const Sidebar = () => {
 
   const sidebarStyle: CSSProperties = !isMobile ? { 
     width: isCollapsed ? '4rem' : '13rem', 
-    minWidth: isCollapsed ? '4rem' : '13rem' 
+    minWidth: isCollapsed ? '4rem' : '13rem',
+    transition: 'width 600ms cubic-bezier(0.22, 1, 0.36, 1), min-width 600ms cubic-bezier(0.22, 1, 0.36, 1)'
   } : {
     position: 'fixed',
     top: 0,
@@ -104,14 +105,14 @@ const Sidebar = () => {
         <Button
           variant="ghost"
           size="icon"
-          className={`absolute -right-4 top-16 bg-gray-900 text-white rounded-full hover:bg-gray-800 z-50 dark:bg-gray-950 dark:hover:bg-gray-800 md:flex hidden items-center justify-center ${isCollapsed ? "hidden" : "block"}`}
+          className={`absolute -right-4 top-16 bg-gray-900 text-white rounded-full hover:bg-gray-800 z-50 dark:bg-gray-950 dark:hover:bg-gray-800 md:flex hidden items-center justify-center ${isCollapsed ? "hidden" : "block"} transition-all duration-300`}
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           <div className="flex items-center justify-center h-9 w-9">
             {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 transition-transform duration-600" />
             ) : (
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 transition-transform duration-600" />
             )}
           </div>
         </Button>
@@ -167,10 +168,11 @@ const Sidebar = () => {
                   onClick={item.disabled ? (e) => e.preventDefault() : undefined}
                 >
                   <item.icon className={cn(
-                    isCollapsed ? "w-6 h-6" : "w-5 h-5"
+                    isCollapsed ? "w-6 h-6" : "w-5 h-5",
+                    "transition-all duration-600"
                   )} />
                   {!isCollapsed && (
-                    <span className="ml-3 hidden md:inline font-medium">{item.label}</span>
+                    <span className="ml-3 hidden md:inline font-medium transition-opacity duration-600">{item.label}</span>
                   )}
                 </Link>
               ))}
