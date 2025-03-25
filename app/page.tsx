@@ -10,7 +10,7 @@ export default function Home() {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Project Tasks</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Manage and track your tasks progress</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 hidden md:block">Manage and track your tasks progress</p>
             </div>
           </div>
         </div>

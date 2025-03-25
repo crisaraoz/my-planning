@@ -6,6 +6,39 @@
 
 /* Estilos críticos que deben aplicarse inmediatamente */
 html, body {
+  font-family: 'Inter', sans-serif;
+  
+  /* Corregir la detección automática para desktop */
+  @media (min-width: 769px) {
+    .sidebar {
+      flex-direction: column !important;
+      height: 100vh !important;
+      width: auto !important;
+    }
+
+    .mobile-sidebar-container {
+      padding: 1rem !important;
+      flex-direction: column !important;
+      height: auto !important;
+    }
+
+    .theme-toggle-container {
+      margin-top: 1rem !important;
+      margin-bottom: 1.5rem !important;
+    }
+
+    .mobile-nav {
+      flex-direction: column !important;
+    }
+    
+    /* Asegurar que el menú móvil no se muestre en desktop */
+    .mobile-hamburger-container,
+    .mobile-nav-menu {
+      display: none !important;
+    }
+  }
+  
+  /* Estilos para móvil */
   @media (max-width: 768px) {
     .sidebar {
       height: 5rem !important;
@@ -17,7 +50,67 @@ html, body {
       margin-bottom: 0 !important;
       height: 5rem !important;
     }
+    
+    /* Asegurar que la navegación normal no se muestre por defecto en móvil */
+    .mobile-nav-horizontal {
+      display: none !important;
+    }
   }
+
+  /* Estilos críticos para prevenir flash de contenido mal posicionado */
+  .sidebar {
+    position: relative;
+    display: flex;
+    height: auto;
+    width: 100%;
+    box-sizing: border-box;
+    
+    @media (max-width: 768px) {
+      height: 5rem !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      width: 100% !important;
+    }
+  }
+
+  /* Asegurar que los contenedores estén bien posicionados desde el inicio */
+  .mobile-sidebar-container {
+    @media (max-width: 768px) {
+      display: flex !important;
+      flex-direction: row !important;
+      height: 5rem !important;
+      width: 100% !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+    }
+  }
+
+  .theme-toggle-container {
+    @media (max-width: 768px) {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      height: 5rem !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+  }
+  
+  .mobile-nav {
+    @media (max-width: 768px) {
+      display: flex !important;
+      flex-direction: row !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+  }
+
+  /* Ajustes generales para pantallas pequeñas */
+  padding: 0;
+  margin: 0;
+  min-height: 100vh; /* Ensure body takes up at least full viewport height */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 :root {
@@ -153,6 +246,64 @@ html, body {
 }
 
 @media (max-width: 768px) {
+  /* Project title specific spacing */
+  h1.text-2xl, h1.text-xl, h2.text-2xl, h2.text-xl {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.75rem !important;
+    font-size: 1.5rem !important;
+  }
+  
+  /* Subtitle spacing */
+  h1 + p, h2 + p {
+    margin-top: -0.5rem !important;
+    margin-bottom: 1rem !important;
+    font-size: 0.9rem !important;
+  }
+  
+  /* Container padding adjustments */
+  .container {
+    padding-top: 0.5rem !important;
+  }
+  
+  /* Ensure the sidebar stays fixed */
+  .sidebar.fixed {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 999 !important; /* Ensure it's above everything */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Reducing space between title and content */
+  h1, h2 {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  /* Project title and description styling */
+  h1 + p, h2 + p {
+    margin-top: 0 !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Header element styling */
+  header, .header {
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Improving layout spacing */
+  .p-6, .p-8, .py-6, .py-8 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  
+  /* Adding padding to main content to prevent it from being hidden under fixed header */
+  main, div[data-overlay-container="true"] > div:not(.sidebar):not(.mobile-nav-menu) {
+    padding-top: 5rem !important;
+    margin-top: 0 !important;
+  }
+  
   /* Global fix for all tags in the entire app */
   [class*="rounded-full"] {
     width: auto !important;
@@ -160,12 +311,164 @@ html, body {
     display: inline-block !important;
   }
   
-  body {
-    /* Ajustes generales para pantallas pequeñas */
-    padding: 0;
-    margin: 0;
-    min-height: 100vh; /* Ensure body takes up at least full viewport height */
-    overflow-x: hidden; /* Prevent horizontal scrolling */
+  /* Estilos para el nuevo menú hamburguesa */
+  .mobile-hamburger-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+
+  /* Menú desplegable para móvil */
+  .mobile-nav-menu {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    background-color: rgba(10, 15, 25, 0.98) !important; /* Darker background */
+    z-index: 100 !important;
+    padding: 4rem 2rem 2rem 2rem !important;
+    flex-direction: column !important;
+    display: flex !important;
+    animation: fadeIn 0.3s ease-out !important;
+    justify-content: center !important;
+    align-items: center !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Animaciones para el menú */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  /* Overlay para cerrar el menú */
+  .fixed.inset-0.bg-black.bg-opacity-50.z-40 {
+    animation: fadeIn 0.3s ease-out !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    z-index: 40 !important;
+  }
+  
+  /* Ajustar estilo de los elementos del menú móvil */
+  .mobile-nav-menu .mobile-nav-link {
+    padding: 1.25rem !important;
+    border-radius: 0.75rem !important;
+    margin-bottom: 1.5rem !important;
+    width: 90% !important;
+    max-width: 320px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    background-color: rgba(55, 65, 82, 0.9) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    backdrop-filter: blur(4px) !important;
+    color: rgba(255, 255, 255, 1) !important;
+  }
+
+  /* Contenedor para los elementos de navegación en móvil */
+  .mobile-nav-menu .mobile-nav-link span {
+    display: inline-block !important;
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    margin-left: 1.5rem !important;
+    color: rgba(255, 255, 255, 1) !important;
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Also make the icons more visible */
+  .mobile-nav-menu .mobile-nav-link svg {
+    color: rgba(255, 255, 255, 1) !important;
+    filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.2)) !important;
+  }
+
+  /* Contenedores específicos para el tema en móvil */
+  .mobile-theme-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important; /* Alinear a la izquierda */
+    position: relative !important;
+    z-index: 10 !important;
+    padding-left: 1rem !important;
+  }
+
+  .mobile-theme-icon {
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    position: relative !important;
+  }
+
+  /* Estilos específicos para el botón de theme en móvil */
+  .mobile-theme-toggle {
+    height: 2.5rem !important;
+    width: 2.5rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+
+  /* Alineación específica para el icono de tema en móvil */
+  .theme-toggle-container {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    height: 5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important; /* Alinear a la izquierda */
+    width: auto !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+
+  /* Forzar alineación del botón de tema al mismo nivel que los íconos de navegación */
+  .sidebar .flex-shrink-0 {
+    display: flex !important;
+    justify-content: flex-start !important; /* Cambio a izquierda */
+    align-items: center !important;
+    width: auto !important;
+    margin: 0 !important;
+    height: 5rem !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+
+  /* Asegurar que el botón de tema tenga las mismas dimensiones que los otros iconos */
+  .theme-toggle-container .flex-shrink-0 {
+    width: auto !important;
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Ajustar el diseño del sidebar para que funcione como header en móvil */
+  .mobile-sidebar-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 5rem !important;
+    flex-direction: row !important;
+    justify-content: space-between !important; /* Separar los elementos al máximo */
+    align-items: center !important;
+    width: 100% !important;
   }
 
   /* Fix for tag containers - keep them in row direction */
@@ -247,37 +550,6 @@ html, body {
     display: none !important;
   }
 
-  /* Contenedor específico para el sidebar en móviles */
-  .mobile-sidebar-container {
-    padding: 0 !important;
-    margin: 0 !important;
-    height: 5rem !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  /* Centrar correctamente el botón de tema en móviles */
-  .sidebar .flex-shrink-0 {
-    display: flex !important;
-    justify-content: center !important;
-    width: 100% !important;
-  }
-
-  /* Asegurar que el botón de tema esté correctamente posicionado desde el inicio */
-  .theme-toggle-container {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    height: 5rem !important;
-    display: flex !important;
-    align-items: center !important;
-  }
-
-  /* Asegurar que el botón de tema sea visible desde el inicio */
-  .sidebar .flex-shrink-0 button {
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-
   .flex {
     flex-direction: column; /* Cambia la dirección del flex en pantallas pequeñas */
   }
@@ -356,10 +628,105 @@ html, body {
     height: 100% !important;
   }
 
+  /* Añadir espaciado horizontal para prevenir amontonamiento de iconos */
+  .mobile-nav-horizontal > * {
+    margin: 0 0.5rem !important;
+  }
+
+  /* Garantizar que el espacio entre iconos se mantiene */
+  .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 0;
+    margin-right: calc(1rem * var(--tw-space-x-reverse));
+    margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+
   /* Resetear el espacio vertical entre elementos para móvil */
   .space-y-2 > :not([hidden]) ~ :not([hidden]) {
     --tw-space-y-reverse: 0;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
   }
+
+  /* Asegurarse de que la navegación está oculta por defecto en móvil */
+  .mobile-nav {
+    display: none !important;
+  }
+
+  /* Ensure content has proper spacing with fixed header */
+  body > div, #__next > div, [data-overlay-container="true"] {
+    padding-top: 0 !important; /* Remove the extra padding */
+  }
+  
+  /* Reduce space at top of headings */
+  .text-2xl, .text-xl, .text-3xl, h1, h2 {
+    padding-top: 0 !important;
+    margin-top: 0.5rem !important;
+  }
+  
+  /* Make sure space after title is reduced */
+  [class*="mb-4"], [class*="mb-6"] {
+    margin-bottom: 1rem !important;
+  }
+}
+
+/* Targeted Project Tasks title fix */
+.text-2xl:not(.sidebar *), .text-xl:not(.sidebar *) {
+  margin-top: 0.75rem !important;
+}
+
+/* Specific fix for task description */
+.text-2xl + p, .text-xl + p {
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Fix for the large white space at the top */
+html, body, #__next, [data-overlay-container="true"] {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Only apply top padding to the main content, not outer containers */
+@media (min-width: 769px) {
+  /* Desktop layout adjustments */
+  main, div[data-overlay-container="true"] > div:nth-child(2) {
+    margin-left: var(--sidebar-width, 13rem);
+    padding-top: 1rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Mobile layout adjustments - only add padding to main content */
+  main, div[data-overlay-container="true"] > div:nth-child(2) {
+    padding-top: 5rem !important;
+    margin-top: 0 !important;
+  }
+}
+
+/* Root container fixes */
+#root, div[id="__next"] {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Fix for any top-level main containers */
+main, [data-overlay-container="true"] {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Reset all top margins and paddings */
+body > div > div:first-child, 
+#__next > div > div:first-child, 
+[data-overlay-container="true"] > div:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
