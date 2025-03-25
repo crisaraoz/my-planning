@@ -80,8 +80,8 @@ const config: Config = {
         },
       },
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+        'accordion-down': 'accordion-down 700ms cubic-bezier(0.05, 0.6, 0.1, 0.95)',
+        'accordion-up': 'accordion-up 300ms ease-in-out',
       },
     },
   },
