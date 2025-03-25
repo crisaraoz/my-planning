@@ -8,6 +8,7 @@ import { toast } from "sonner";
 interface Message {
   role: 'system' | 'user' | 'assistant';
   content: string;
+  reasoning?: string;
 }
 
 const Chat = () => {
@@ -19,7 +20,7 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll al final de los mensajes cuando se añaden nuevos
+  // Auto-scroll to the end of messages when new ones are added
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -37,31 +38,40 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
+      console.log('Sending messages:', newMessages); // Debug log
       const response = await sendChatRequest(newMessages);
+      console.log('Received response:', response); // Debug log
       
-      if (response.status === 'success') {
-        setMessages([
-          ...newMessages, 
-          { role: 'assistant' as const, content: response.message }
-        ]);
+      if (response.status === 'success' && response.message) {
+        // Only add the final response (not the thinking process)
+        const assistantMessage = { 
+          role: 'assistant' as const, 
+          content: response.message,
+          reasoning: response.reasoning // Store reasoning but don't display it
+        };
+        console.log('Adding assistant message:', assistantMessage); // Debug log
+        setMessages(prev => [...prev, assistantMessage]);
       } else {
         // Instead of showing the raw error, add a more user-friendly assistant message
-        setMessages([
-          ...newMessages, 
-          { role: 'assistant' as const, content: 'I apologize, but I\'m unable to connect to the AI service at the moment. Please try again later.' }
-        ]);
+        const errorMessage = { 
+          role: 'assistant' as const, 
+          content: 'I apologize, but I\'m unable to process your request at the moment. Please try again.' 
+        };
+        console.log('Adding error message:', errorMessage); // Debug log
+        setMessages(prev => [...prev, errorMessage]);
         
-        // Still log the error via toast but with the friendlier message
-        toast.error(response.message);
+        // Show error toast
+        toast.error(response.message || 'Unable to get response from AI assistant');
       }
     } catch (error) {
-      // Add a friendly assistant message even on unexpected errors
-      setMessages([
-        ...newMessages, 
-        { role: 'assistant' as const, content: 'I apologize, but I\'m unable to connect to the AI service at the moment. Please try again later.' }
-      ]);
+      console.error('Chat error:', error);
+      // Add a friendly assistant message on errors
+      const errorMessage = { 
+        role: 'assistant' as const, 
+        content: 'I apologize, but I\'m unable to process your request at the moment. Please try again.' 
+      };
+      setMessages(prev => [...prev, errorMessage]);
       toast.error("Unable to connect to AI assistant");
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -69,9 +79,9 @@ const Chat = () => {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      {/* Contenedor principal del chat */}
-      <div className={`flex flex-col transition-all duration-300 ${isOpen ? "h-[400px] w-[350px]" : "h-12 w-40"}`}>
-        {/* Cabecera del chat */}
+      {/* Main chat container */}
+      <div className={`flex flex-col transition-all duration-300 ${isOpen ? "h-[500px] w-[400px]" : "h-12 w-40"}`}>
+        {/* Chat header */}
         <div
           className={`${styles.chatButton} bg-card text-card-foreground rounded-lg p-3 shadow-lg flex items-center justify-between cursor-pointer`}
           onClick={() => setIsOpen(!isOpen)}
@@ -87,24 +97,24 @@ const Chat = () => {
 
         {isOpen && (
           <div className="bg-card rounded-lg flex flex-col flex-grow h-full overflow-hidden mt-2 border border-border shadow-md">
-            {/* Título del asistente */}
+            {/* Assistant title */}
             <h3 className="font-semibold text-card-foreground p-3 border-b border-border">AI Assistant</h3>
             
-            {/* Contenedor de mensajes */}
+            {/* Message container */}
             <div className="overflow-y-auto flex-grow p-3 bg-background">
               {messages.filter(m => m.role !== 'system').map((message, index) => (
                 <div 
                   key={index} 
-                  className={`flex ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}
+                  className={`flex mb-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div 
-                    className={`max-w-[80%] rounded-lg p-3 ${
+                    className={`max-w-[85%] rounded-lg p-3 ${
                       message.role === 'user' 
                         ? 'bg-primary text-white' 
                         : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    <p className="whitespace-pre-wrap break-words">{message.content}</p>
                   </div>
                 </div>
               ))}
@@ -123,7 +133,7 @@ const Chat = () => {
               <div ref={messagesEndRef} />
             </div>
             
-            {/* Campo de entrada fijo en la parte inferior */}
+            {/* Input field fixed at the bottom */}
             <form onSubmit={handleSubmit} className="p-3 border-t border-border bg-muted rounded-b-lg">
               <div className="flex gap-2">
                 <input
